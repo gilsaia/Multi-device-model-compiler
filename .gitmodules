@@ -1,3 +1,6 @@
 [submodule "3rdparty/onnx-mlir"]
 	path = 3rdparty/onnx-mlir
 	url = git@github.com:onnx/onnx-mlir.git
+[submodule "3rdparty/llvm-project"]
+	path = 3rdparty/llvm-project
+	url = git@github.com:llvm/llvm-project.git
