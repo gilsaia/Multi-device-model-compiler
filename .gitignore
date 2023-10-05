@@ -29,6 +29,9 @@
 # CMake dir
 build/
 
+#vscode setting
+.vscode/
+
 # Executables
 *.exe
 *.out
