@@ -28,7 +28,7 @@ add_definitions(${LLVM_DEFINITIONS})
 #---------------------------------------------------------------
 
 # ONNX-Mlir Configure
-# set(ONNX_MLIR_CCACHE_BUILD ON)
+set(ONNX_MLIR_CCACHE_BUILD ON)
 add_subdirectory(3rdparty/onnx-mlir)
 
 #---------------------------------------------------------------
