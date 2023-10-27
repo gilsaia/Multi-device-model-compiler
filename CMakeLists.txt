@@ -1,8 +1,10 @@
 cmake_minimum_required(VERSION 3.18)
 
-project(multi-device-compiler VERSION 0.0.1)
+project(multi-device-compiler VERSION 0.0.2)
 
 set(CMAKE_CXX_STANDARD 17)
+
+#---------------------------------------------------------------
 
 # LLVM Configure
 set(LLVM_DIR ${CMAKE_SOURCE_DIR}/3rdparty/llvm-project/build/lib/cmake/llvm)
@@ -32,3 +34,5 @@ set(ONNX_MLIR_CCACHE_BUILD ON)
 add_subdirectory(3rdparty/onnx-mlir)
 
 #---------------------------------------------------------------
+
+add_subdirectory(tools)
