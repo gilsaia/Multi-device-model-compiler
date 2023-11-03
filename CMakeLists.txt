@@ -4,6 +4,11 @@ project(multi-device-compiler VERSION 0.0.2)
 
 set(CMAKE_CXX_STANDARD 17)
 
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/$<CONFIG>/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/$<CONFIG>/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/$<CONFIG>/bin)
+set(CMAKE_INCLUDE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/$<CONFIG>/include)
+
 #---------------------------------------------------------------
 
 # LLVM Configure
@@ -34,8 +39,6 @@ set(ONNX_MLIR_CCACHE_BUILD ON)
 add_subdirectory(3rdparty/onnx-mlir)
 include_directories(${CMAKE_SOURCE_DIR}/3rdparty/onnx-mlir/include)
 include_directories(${CMAKE_SOURCE_DIR}/3rdparty/onnx-mlir/src)
-include_directories(${CMAKE_SOURCE_DIR}/3rdparty/onnx-mlir/third_party/onnx)
-include_directories(${CMAKE_BINARY_DIR}/3rdparty/onnx-mlir/third_party/onnx)
 
 #---------------------------------------------------------------
 
