@@ -36,3 +36,7 @@ build/
 *.exe
 *.out
 *.app
+
+# example tmp file
+examples/*.mlir
+examples/*.tmp
