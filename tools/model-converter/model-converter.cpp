@@ -43,7 +43,4 @@ int main(int argc, char **argv) {
   onnx_mlir::outputCode(module, outputTmpWithExt, 100);
 
   return 0;
-  // mlir::DialectRegistry registry;
-  // return mlir::asMainReturnCode(
-  //     mlir::MlirOptMain(argc, argv, "Model-Converter", registry));
 }
