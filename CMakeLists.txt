@@ -1,8 +1,13 @@
 cmake_minimum_required(VERSION 3.18)
 
-project(multi-device-compiler VERSION 0.0.2)
+project(multi-device-compiler VERSION 0.1.0)
 
 set(CMAKE_CXX_STANDARD 17)
+
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/$<CONFIG>/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/$<CONFIG>/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/$<CONFIG>/bin)
+set(CMAKE_INCLUDE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/$<CONFIG>/include)
 
 #---------------------------------------------------------------
 
@@ -32,7 +37,13 @@ add_definitions(${LLVM_DEFINITIONS})
 # ONNX-Mlir Configure
 set(ONNX_MLIR_CCACHE_BUILD ON)
 add_subdirectory(3rdparty/onnx-mlir)
+include_directories(${CMAKE_SOURCE_DIR}/3rdparty/onnx-mlir/include)
+include_directories(${CMAKE_SOURCE_DIR}/3rdparty/onnx-mlir/src)
+include_directories(${CMAKE_BINARY_DIR}/3rdparty/onnx-mlir/src)
 
 #---------------------------------------------------------------
 
+include_directories(${CMAKE_SOURCE_DIR}/include)
+
 add_subdirectory(tools)
+add_subdirectory(lib)

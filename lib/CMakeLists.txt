@@ -1,0 +1,2 @@
+add_library(PassUtils STATIC InitPasses.cpp)
+target_link_libraries(PassUtils PUBLIC OMONNXRewrite OMShapeInferencePass OMInstrumentONNX OMOpTransform OMHybridTransform OMONNXSimplifyShapeRelatedOps OMONNXToTOSA)
