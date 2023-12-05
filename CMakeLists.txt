@@ -38,8 +38,8 @@ add_definitions(${LLVM_DEFINITIONS})
 set(ONNX_MLIR_CCACHE_BUILD ON)
 add_subdirectory(3rdparty/onnx-mlir)
 include_directories(${CMAKE_SOURCE_DIR}/3rdparty/onnx-mlir/include)
-include_directories(${CMAKE_SOURCE_DIR}/3rdparty/onnx-mlir/src)
-include_directories(${CMAKE_BINARY_DIR}/3rdparty/onnx-mlir/src)
+include_directories(${CMAKE_SOURCE_DIR}/3rdparty/onnx-mlir)
+include_directories(${CMAKE_BINARY_DIR}/3rdparty/onnx-mlir)
 
 #---------------------------------------------------------------
 

@@ -1,8 +1,9 @@
 #include "multi-device-model-compiler/InitPasses.h"
+#include "multi-device-model-compiler/Pipelines/ConvertPipelines.h"
 
 #include "mlir/Pass/Pass.h"
 
-#include "Pass/Passes.hpp"
+#include "src/Pass/Passes.hpp"
 
 void multi_device::initONNXPasses() {
   mlir::registerPass([]() -> std::unique_ptr<mlir::Pass> {
@@ -52,4 +53,10 @@ void multi_device::initONNXPasses() {
   mlir::registerPass([]() -> std::unique_ptr<mlir::Pass> {
     return onnx_mlir::createConvertONNXToTOSAPass();
   });
+}
+
+void multi_device::initConvertPassPipelines() {
+  mlir::PassPipelineRegistration<>(
+      "onnx-to-mlir", "Pipeline lowering ONNX-IR to MLIR",
+      multi_device::pipelines::createONNXToMLIRPipeline);
 }

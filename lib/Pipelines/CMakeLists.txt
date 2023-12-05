@@ -1,0 +1,3 @@
+add_library(MultiDevicePipelines STATIC ONNXToMLIR.cpp)
+target_link_libraries(MultiDevicePipelines PUBLIC MLIRPass MLIRTransforms 
+OMONNXRewrite OMShapeInferencePass OMOpTransform OMHybridTransform OMONNXSimplifyShapeRelatedOps MLIRTosaDialect ConvertONNXToTosaFix)
