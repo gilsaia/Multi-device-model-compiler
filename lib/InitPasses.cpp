@@ -59,4 +59,7 @@ void multi_device::initConvertPassPipelines() {
   mlir::PassPipelineRegistration<>(
       "onnx-to-mlir", "Pipeline lowering ONNX-IR to MLIR",
       multi_device::pipelines::createONNXToMLIRPipeline);
+  mlir::PassPipelineRegistration<>(
+      "mlir-to-cpu", "Pipeline lowering TOSA to CPU code",
+      multi_device::pipelines::createMLIRToCPUPipeline);
 }
