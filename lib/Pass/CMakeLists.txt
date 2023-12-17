@@ -1,0 +1,5 @@
+add_subdirectory(ONNX)
+
+add_library(MultiDevicePasses STATIC InitPasses.cpp)
+target_link_libraries(MultiDevicePasses PUBLIC
+MultiDeviceONNXPass)

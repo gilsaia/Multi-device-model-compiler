@@ -4,9 +4,12 @@
 include "mlir/Pass/PassBase.td"
 
 def EliminateEntryPoint: Pass<"onnx-eliminate-entrypoint">{
-    let summary= "Just Eliminate onnx.entrypoiny in module.";
-    let constructor="mlir::multi_device::createEliminateEntryPointPass()";
-    let dependentDialects=["ONNXDialect"];
+    let summary= "Just Eliminate onnx.entrypoint in module.";
+    let description=[{
+        Use model-converter will cause onnx.entrypoint,which is not used in the future,so 
+        this pass will eliminate entrypoint.
+    }];
+    let constructor="multi_device::createEliminateEntryPointPass()";
+    let dependentDialects=["mlir::ONNXDialect"];
 }
-
-#endif
+#endif // MULTI_DEVICE_MODEL_COMPILER_ONNX_PASSES

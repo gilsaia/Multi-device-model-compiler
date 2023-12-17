@@ -1,4 +1,5 @@
-#include "multi-device-model-compiler/InitPasses.h"
+#include "multi-device-model-compiler/InitUtils.h"
+#include "multi-device-model-compiler/Pass/InitPasses.h"
 #include "multi-device-model-compiler/Pipelines/ConvertPipelines.h"
 
 #include "mlir/Pass/Pass.h"
@@ -63,3 +64,5 @@ void multi_device::initConvertPassPipelines() {
       "mlir-to-cpu", "Pipeline lowering TOSA to CPU code",
       multi_device::pipelines::createMLIRToCPUPipeline);
 }
+
+void multi_device::initMultiDevicePasses() { registerONNXPasses(); }

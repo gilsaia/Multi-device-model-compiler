@@ -26,7 +26,7 @@
 #include "src/Dialect/ONNX/ONNXDialect.hpp"
 #include "src/Pass/Passes.hpp"
 
-#include "multi-device-model-compiler/InitPasses.h"
+#include "multi-device-model-compiler/InitUtils.h"
 
 static llvm::cl::OptionCategory
     MultiDeviceOptOptions("Multi Device OPT Options",
@@ -60,6 +60,7 @@ int main(int argc, char **argv) {
   mlir::registerTransformsPasses();
   multi_device::initONNXPasses();
   multi_device::initConvertPassPipelines();
+  multi_device::initMultiDevicePasses();
 
   llvm::cl::HideUnrelatedOptions({&MultiDeviceOptOptions});
 

@@ -1,7 +1,8 @@
+add_subdirectory(Pass)
 add_subdirectory(Conversion)
 add_subdirectory(Pipelines)
 
-add_library(PassUtils STATIC InitPasses.cpp)
+add_library(PassUtils STATIC InitUtils.cpp)
 target_link_libraries(PassUtils PUBLIC OMONNXRewrite OMShapeInferencePass 
 OMInstrumentONNX OMOpTransform OMHybridTransform OMONNXSimplifyShapeRelatedOps OMONNXToTOSA
-MultiDevicePipelines)
+MultiDevicePipelines MultiDevicePasses)

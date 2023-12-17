@@ -1,0 +1,6 @@
+add_library(MultiDeviceONNXPass STATIC EliminateEntryPoint.cpp)
+
+add_dependencies(MultiDeviceONNXPass MultiDeviceONNXPassIncGen)
+
+target_link_libraries(MultiDeviceONNXPass PUBLIC 
+OMONNXOps)
