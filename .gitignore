@@ -41,3 +41,4 @@ build/
 # example tmp file
 examples/*.mlir
 examples/*.tmp
+examples/*.ll
