@@ -1,3 +1,4 @@
+#include "multi-device-model-compiler/Pass/ONNX/Passes.h"
 #include "multi-device-model-compiler/Pipelines/ConvertPipelines.h"
 
 #include "mlir/Conversion/AffineToStandard/AffineToStandard.h"
@@ -38,14 +39,14 @@ void multi_device::pipelines::createMLIRToCPUPipeline(mlir::OpPassManager &pm) {
   pm.addPass(mlir::createConvertTensorToLinalgPass());
   // pm.addPass(mlir::createLinalgGeneralizationPass());
   // pm.addPass(mlir::createLinalgElementwiseOpFusionPass());
-  pm.addNestedPass<mlir::func::FuncOp>(mlir::createCanonicalizerPass());
-  pm.addNestedPass<mlir::func::FuncOp>(mlir::createCSEPass());
+  pm.addPass(mlir::createCanonicalizerPass());
+  pm.addPass(mlir::createCSEPass());
   pm.addPass(mlir::bufferization::createEmptyTensorToAllocTensorPass());
   pm.addPass(mlir::createLinalgBufferizePass());
   pm.addPass(mlir::tensor::createTensorBufferizePass());
   pm.addPass(mlir::func::createFuncBufferizePass());
-  pm.addNestedPass<mlir::func::FuncOp>(mlir::createCanonicalizerPass());
-  pm.addNestedPass<mlir::func::FuncOp>(mlir::createCSEPass());
+  pm.addPass(mlir::createCanonicalizerPass());
+  pm.addPass(mlir::createCSEPass());
   pm.addPass(mlir::bufferization::createBufferDeallocationPass());
   pm.addPass(mlir::createConvertLinalgToAffineLoopsPass());
   pm.addPass(mlir::createAffineLoopNormalizePass());
@@ -76,4 +77,5 @@ void multi_device::pipelines::createMLIRToCPUPipeline(mlir::OpPassManager &pm) {
   auto funcToLLVMConfig = mlir::ConvertFuncToLLVMPassOptions();
   pm.addPass(mlir::createConvertFuncToLLVMPass(funcToLLVMConfig));
   pm.addPass(mlir::createReconcileUnrealizedCastsPass());
+  pm.addPass(multi_device::createEliminateEntryPointPass());
 }

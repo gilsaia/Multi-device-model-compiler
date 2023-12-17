@@ -1,4 +1,7 @@
+#include "mlir/IR/Operation.h"
+
 #include "src/Dialect/ONNX/ONNXDialect.hpp"
+#include "src/Dialect/ONNX/ONNXOps.hpp"
 
 #include "multi-device-model-compiler/Pass/ONNX/Passes.h"
 
@@ -17,8 +20,15 @@ struct EliminateEntryPointPass final
 };
 } // namespace
 
-void EliminateEntryPointPass::runOnOperation() {}
+void EliminateEntryPointPass::runOnOperation() {
+  ModuleOp moduleOp = getOperation();
+  moduleOp.walk([](ONNXEntryPointOp op) {
+    op.erase();
+    return WalkResult::skip();
+  });
+}
 
-std::unique_ptr<Pass> multi_device::createEliminateEntryPointPass() {
+std::unique_ptr<OperationPass<ModuleOp>>
+multi_device::createEliminateEntryPointPass() {
   return std::make_unique<EliminateEntryPointPass>();
 }
