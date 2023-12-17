@@ -1,10 +1,11 @@
+import numpy as np
 import onnx
-from onnx import TensorProto, helper, checker
+from onnx import TensorProto, helper, checker, numpy_helper
 
 import argparse
 
 
-def gen_add_op(filename):
+def gen_add_op(dir):
     A = helper.make_tensor_value_info("A", TensorProto.FLOAT, [3, 640, 640])
     B = helper.make_tensor_value_info("B", TensorProto.FLOAT, [3, 640, 640])
 
@@ -16,17 +17,36 @@ def gen_add_op(filename):
 
     onnx_model = helper.make_model(graph)
     checker.check_model(onnx_model)
-    onnx.save(onnx_model, filename)
+    onnx.save(onnx_model, dir + "add.onnx")
 
 
-def gen_onnx(filename, args):
-    gen_add_op(filename)
+def gen_gemm_op(dir):
+    # val = np.random.randn(10, 20)
+    # B = numpy_helper.from_array(val, name="B")
+    B = helper.make_tensor_value_info("B", TensorProto.FLOAT, [10, 20])
+
+    A = helper.make_tensor_value_info("A", TensorProto.FLOAT, [20, 10])
+
+    C = helper.make_tensor_value_info("C", TensorProto.FLOAT, [20, 20])
+
+    gemm = helper.make_node("Gemm", ["A", "B"], ["C"])
+
+    graph = helper.make_graph([gemm], "Gemm Op", [A, B], [C])
+
+    onnx_model = helper.make_model(graph)
+    checker.check_model(onnx_model)
+    onnx.save(onnx_model, dir + "gemm.onnx")
+
+
+def gen_onnx(dir, args):
+    gen_add_op(dir)
+    gen_gemm_op(dir)
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "-o", "--output", type=str, default="sample.onnx", help="Output onnx file name"
+        "-o", "--output_dir", type=str, default="./", help="Output onnx file dir"
     )
 
     args = parser.parse_args()
@@ -35,4 +55,4 @@ def parse_args():
 
 if __name__ == "__main__":
     args = parse_args()
-    gen_onnx(args.output, args)
+    gen_onnx(args.output_dir, args)

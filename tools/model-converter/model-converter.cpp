@@ -2,8 +2,8 @@
 #include "mlir/Tools/mlir-opt/MlirOptMain.h"
 #include "llvm/Support/CommandLine.h"
 
-#include "Builder/FrontendDialectTransformer.hpp"
-#include "Compiler/CompilerUtils.hpp"
+#include "src/Builder/FrontendDialectTransformer.hpp"
+#include "src/Compiler/CompilerUtils.hpp"
 
 llvm::cl::OptionCategory ModelConverterOptions("Converter Options", "");
 

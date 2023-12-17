@@ -1,0 +1,5 @@
+add_library(ConvertONNXToTosaFix STATIC ConvertONNXToTosa.cpp)
+target_link_libraries(ConvertONNXToTosaFix PUBLIC   
+OMONNXOps
+MLIRTosaDialect
+MLIRTransforms)
