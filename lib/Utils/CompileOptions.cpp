@@ -9,12 +9,12 @@ llvm::cl::OptionCategory MultiDeviceCompileOptions("Common option for compile",
 llvm::cl::OptionCategory MultiDeviceLibGenOptions("Generate Library Options",
                                                   "");
 
-llvm::cl::opt<bool> preserveOptIR("preserveOptIR",
+llvm::cl::opt<bool> preserveOptIR("saveOptIR",
                                   llvm::cl::desc("don't delete opt ir files."),
                                   llvm::cl::init(false),
                                   llvm::cl::cat(MultiDeviceLibGenOptions));
 
-llvm::cl::opt<bool> preserveObject("preserveObject",
+llvm::cl::opt<bool> preserveObject("saveObject",
                                    llvm::cl::desc("don't delete object files."),
                                    llvm::cl::init(false),
                                    llvm::cl::cat(MultiDeviceLibGenOptions));
@@ -42,6 +42,13 @@ llvm::cl::opt<OptLevel> OptimizationLevel(
                      clEnumVal(O3, "Optimization level 3.")),
     llvm::cl::init(O2), llvm::cl::cat(MultiDeviceCompileOptions));
 
+llvm::cl::opt<TargetDevice>
+    Device("device", llvm::cl::desc("Set target device:"),
+           llvm::cl::values(clEnumVal(CPU, "Target device cpu (default),"),
+                            clEnumVal(GPU, "Target device gpu (cuda),"),
+                            clEnumVal(TPU, "Target device tpu.")),
+           llvm::cl::init(CPU), llvm::cl::cat(MultiDeviceCompileOptions));
+
 std::string getTargetArch() { return (march != "") ? "--march=" + march : ""; }
 
 std::string getTargetTriple() {
@@ -68,6 +75,18 @@ std::string getOptimizationLevel() {
     return "-O3";
   }
   llvm_unreachable("Unexpected optimization level");
+  return "";
+}
+
+std::string getLibraryExt() {
+  switch (Device) {
+  case TargetDevice::CPU:
+  case TargetDevice::GPU:
+    return ".so";
+  case TargetDevice::TPU:
+    return ".bmodel";
+  }
+  llvm_unreachable("Unexpected target device");
   return "";
 }
 
