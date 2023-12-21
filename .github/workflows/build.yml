@@ -38,9 +38,10 @@ jobs:
               uses: actions/cache@v3
               with:
                 path: 3rdparty/llvm-project/build
-                key: llvm-${{ hashFiles('**/configure-llvm.sh','**/build-llvm.sh') }}-${{ github.ref }}
+                key: llvm-${{ hashFiles('**/configure-llvm.sh','**/build-llvm.sh') }}-${{ github.ref }}-${{ matrix.build_type }}
                 restore-keys: |
-                    llvm-${{ hashFiles('**/configure-llvm.sh','**/build-llvm.sh') }}
+                    llvm-${{ hashFiles('**/configure-llvm.sh','**/build-llvm.sh') }}-${{ github.ref }}-
+                    llvm-${{ hashFiles('**/configure-llvm.sh','**/build-llvm.sh') }}-
                     llvm-
             - name: Configure&Build LLVM CMake
               if: steps.cache-llvm.outputs.cache-hit != 'true'
@@ -48,6 +49,6 @@ jobs:
                 sh utils/configure-llvm.sh
                 sh utils/build-llvm.sh
             - name: Configure CMake
-              run: cmake -G Ninja -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+              run: cmake -G Ninja -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DUSE_CCACHE_BUILD=OFF
             - name: Build
               run: cmake --build ${{ github.workspace }}/build --config ${{ matrix.build_type }}
