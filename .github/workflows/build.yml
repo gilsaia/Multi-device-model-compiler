@@ -36,6 +36,8 @@ jobs:
             - name: Install ONNX
               working-directory: 3rdparty/onnx-mlir/third_party/onnx
               run: python3 -m pip install -v .
+              env:
+                CMAKE_ARGS: -DONNX_USE_PROTOBUF_SHARED_LIBS=ON
               # continue-on-error: true
             - name: Cache LLVM 
               id: cache-llvm
