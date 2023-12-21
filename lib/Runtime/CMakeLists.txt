@@ -1,0 +1,4 @@
+add_library(MultiDeviceRuntime STATIC ModelInfo.cpp)
+
+target_link_libraries(MultiDeviceRuntime PUBLIC
+LLVMSupport)

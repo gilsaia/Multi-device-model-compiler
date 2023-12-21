@@ -12,14 +12,12 @@ template <typename T, size_t N> struct TensorDescriptor {
   intptr_t offset;
   intptr_t sizes[N];
   intptr_t strides[N];
-  static TensorDescriptor *CreateTensor(std::vector<int> &sizes,
-                                        std::vector<int> &strides);
+  static TensorDescriptor *CreateTensor(std::vector<int> &sizes);
 };
 
 template <typename T, size_t N>
 TensorDescriptor<T, N> *
-TensorDescriptor<T, N>::CreateTensor(std::vector<int> &sizes,
-                                     std::vector<int> &strides) {
+TensorDescriptor<T, N>::CreateTensor(std::vector<int> &sizes) {
   TensorDescriptor<T, N> *tensor =
       (TensorDescriptor<T, N> *)malloc(sizeof(TensorDescriptor<T, N>));
   tensor->allocated = nullptr;

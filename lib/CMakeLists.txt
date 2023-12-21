@@ -1,6 +1,7 @@
 add_subdirectory(Pass)
 add_subdirectory(Conversion)
 add_subdirectory(Pipelines)
+add_subdirectory(Runtime)
 add_subdirectory(Utils)
 
 add_library(MultiDeviceInitUtils STATIC InitUtils.cpp)
