@@ -48,6 +48,9 @@ jobs:
               run: |
                 sh utils/configure-llvm.sh
                 sh utils/build-llvm.sh
+            - name: Install ONNX
+              working-directory: 3rdparty/onnx-mlir/third_party/onnx
+              run: pip install -v .
             - name: Configure CMake
               run: cmake -G Ninja -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DUSE_CCACHE_BUILD=OFF
             - name: Build
