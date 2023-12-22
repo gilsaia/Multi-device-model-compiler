@@ -53,9 +53,9 @@ jobs:
               uses: actions/cache@v3
               with:
                 path: 3rdparty/llvm-project/build
-                key: llvm-${{ hashFiles('**/configure-llvm.sh','**/build-llvm.sh') }}-${{ github.ref }}-${{ matrix.build_type }}
+                key: llvm-${{ hashFiles('**/configure-llvm.sh','**/build-llvm.sh') }}-${{ github.ref }}
                 restore-keys: |
-                    llvm-${{ hashFiles('**/configure-llvm.sh','**/build-llvm.sh') }}-${{ github.ref }}-
+                    llvm-${{ hashFiles('**/configure-llvm.sh','**/build-llvm.sh') }}-${{ github.ref }}
                     llvm-${{ hashFiles('**/configure-llvm.sh','**/build-llvm.sh') }}-
                     llvm-
             - name: Configure&Build LLVM CMake
@@ -70,6 +70,7 @@ jobs:
                 path: ${{ github.workspace }}/.ccache
                 key: ccache-${{ hashFiles('3rdparty/onnx-mlir/VERSION_NUMBER') }}-${{ github.ref }}-${{ matrix.build_type }}
                 restore-keys: |
+                    ccache-${{ hashFiles('3rdparty/onnx-mlir/VERSION_NUMBER') }}-${{ github.ref }}-${{ matrix.build_type }}
                     ccache-${{ hashFiles('3rdparty/onnx-mlir/VERSION_NUMBER') }}-${{ github.ref }}-
                     ccache-${{ hashFiles('3rdparty/onnx-mlir/VERSION_NUMBER') }}-
                     ccache-
@@ -77,4 +78,3 @@ jobs:
               run: cmake -G Ninja -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DUSE_CCACHE_BUILD=ON
             - name: Build
               run: cmake --build ${{ github.workspace }}/build --config ${{ matrix.build_type }}
-              continue-on-error: true
