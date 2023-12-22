@@ -13,6 +13,8 @@ on:
             - 'check/**'
 jobs:
     build:
+        env:
+          CCACHE_DIR: ${{ github.workspace }}/.ccache
         runs-on: ${{matrix.os}}
         strategy:
             fail-fast: false
@@ -38,7 +40,7 @@ jobs:
             - name: Install Tools
               run: |
                 sudo apt-get update
-                sudo apt-get install  -y gcc g++ cmake ninja-build
+                sudo apt-get install  -y gcc g++ cmake ninja-build ccache
                 pip install -r 3rdparty/onnx-mlir/requirements.txt
             - name: Install Protobuf
               run: |
@@ -46,9 +48,6 @@ jobs:
             - name: Install ONNX
               working-directory: 3rdparty/onnx-mlir/third_party/onnx
               run: python3 -m pip install -v .
-              # env:
-                # CMAKE_ARGS: -DONNX_USE_PROTOBUF_SHARED_LIBS=ON
-              # continue-on-error: true
             - name: Cache LLVM 
               id: cache-llvm
               uses: actions/cache@v3
@@ -64,8 +63,18 @@ jobs:
               run: |
                 sh utils/configure-llvm.sh
                 sh utils/build-llvm.sh
+            - name: Cache CCache 
+              id: cache-ccache
+              uses: actions/cache@v3
+              with:
+                path: ${{ github.workspace }}/.ccache
+                key: ccache-${{ hashFiles('3rdparty/onnx-mlir/VERSION_NUMBER') }}-${{ github.ref }}-${{ matrix.build_type }}
+                restore-keys: |
+                    ccache-${{ hashFiles('3rdparty/onnx-mlir/VERSION_NUMBER') }}-${{ github.ref }}-
+                    ccache-${{ hashFiles('3rdparty/onnx-mlir/VERSION_NUMBER') }}-
+                    ccache-
             - name: Configure CMake
-              run: cmake -G Ninja -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DUSE_CCACHE_BUILD=OFF
+              run: cmake -G Ninja -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DUSE_CCACHE_BUILD=ON
             - name: Build
               run: cmake --build ${{ github.workspace }}/build --config ${{ matrix.build_type }}
               continue-on-error: true
