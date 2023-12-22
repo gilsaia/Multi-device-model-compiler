@@ -9,6 +9,8 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/$<CONFIG>/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/$<CONFIG>/bin)
 set(CMAKE_INCLUDE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/$<CONFIG>/include)
 
+option(USE_CCACHE_BUILD "Use ccache to speedup." ON)
+
 #---------------------------------------------------------------
 
 # LLVM Configure
@@ -35,7 +37,9 @@ add_definitions(${LLVM_DEFINITIONS})
 #---------------------------------------------------------------
 
 # ONNX-Mlir Configure
-set(ONNX_MLIR_CCACHE_BUILD ON)
+if (USE_CCACHE_BUILD)
+    set(ONNX_MLIR_CCACHE_BUILD ON)
+endif()
 add_subdirectory(3rdparty/onnx-mlir)
 include_directories(${CMAKE_SOURCE_DIR}/3rdparty/onnx-mlir/include)
 include_directories(${CMAKE_SOURCE_DIR}/3rdparty/onnx-mlir)
