@@ -53,9 +53,9 @@ jobs:
               uses: actions/cache@v3
               with:
                 path: 3rdparty/llvm-project/build
-                key: llvm-${{ hashFiles('**/configure-llvm.sh','**/build-llvm.sh') }}-${{ github.ref }}
+                key: llvm-${{ hashFiles('**/configure-llvm.sh','**/build-llvm.sh') }}-${{ matrix.build_type }}
                 restore-keys: |
-                    llvm-${{ hashFiles('**/configure-llvm.sh','**/build-llvm.sh') }}-${{ github.ref }}
+                    llvm-${{ hashFiles('**/configure-llvm.sh','**/build-llvm.sh') }}-${{ matrix.build_type }}
                     llvm-${{ hashFiles('**/configure-llvm.sh','**/build-llvm.sh') }}-
                     llvm-
             - name: Configure&Build LLVM CMake
