@@ -31,7 +31,7 @@ jobs:
             - name: Install Tools
               run: |
                 sudo apt-get update
-                sudo apt-get install  -y gcc g++ cmake ninja-build protobuf-compiler
+                sudo apt-get install  -y gcc g++ cmake ninja-build
                 pip install -r 3rdparty/onnx-mlir/requirements.txt
             - name: Install ONNX
               working-directory: 3rdparty/onnx-mlir/third_party/onnx
