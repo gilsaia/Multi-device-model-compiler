@@ -28,16 +28,26 @@ jobs:
               with:
                 python-version: '3.10'
                 cache: 'pip'
+            - name: Checkout protobuf
+              uses: actions/checkout@v4
+              with:
+                repository: protocolbuffers/protobuf
+                path: 'protobuf'
+                ref: 'v3.18.3'
+                submodules: 'recursive'
             - name: Install Tools
               run: |
                 sudo apt-get update
                 sudo apt-get install  -y gcc g++ cmake ninja-build
                 pip install -r 3rdparty/onnx-mlir/requirements.txt
+            - name: Install Protobuf
+              run: |
+                sh utils/build-protobuf.sh
             - name: Install ONNX
               working-directory: 3rdparty/onnx-mlir/third_party/onnx
               run: python3 -m pip install -v .
-              env:
-                CMAKE_ARGS: -DONNX_USE_PROTOBUF_SHARED_LIBS=ON
+              # env:
+                # CMAKE_ARGS: -DONNX_USE_PROTOBUF_SHARED_LIBS=ON
               # continue-on-error: true
             - name: Cache LLVM 
               id: cache-llvm
