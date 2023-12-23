@@ -15,6 +15,7 @@ jobs:
     build:
         env:
           CCACHE_DIR: /home/runner/work/.ccache
+          CCACHE_MAXSIZE: 2G
         runs-on: ${{matrix.os}}
         strategy:
             fail-fast: false
@@ -65,7 +66,7 @@ jobs:
                 sh utils/configure-llvm.sh
                 sh utils/build-llvm.sh
               env:
-                LLVM_CCACHE_MAXSIZE: 2G
+                LLVM_CCACHE_MAXSIZE: 1G
             - name: Configure CMake
               run: cmake -G Ninja -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DUSE_CCACHE_BUILD=ON
             - name: Build
