@@ -14,7 +14,7 @@ on:
 jobs:
     build:
         env:
-          CCACHE_DIR: ${{ github.workspace }}/.ccache
+          CCACHE_DIR: ~/.ccache
         runs-on: ${{matrix.os}}
         strategy:
             fail-fast: false
@@ -52,7 +52,7 @@ jobs:
               id: cache-ccache
               uses: actions/cache@v3
               with:
-                path: ${{ github.workspace }}/.ccache
+                path: ~/.ccache
                 key: ccache-${{ hashFiles('**/configure-llvm.sh','**/build-llvm.sh') }}-${{ matrix.build_type }}
                 restore-keys: |
                     ccache-${{ hashFiles('**/configure-llvm.sh','**/build-llvm.sh') }}-${{ matrix.build_type }}
@@ -62,6 +62,8 @@ jobs:
               run: |
                 sh utils/configure-llvm.sh
                 sh utils/build-llvm.sh
+              env:
+                LLVM_CCACHE_MAXSIZE: 2G
             - name: Configure CMake
               run: cmake -G Ninja -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DUSE_CCACHE_BUILD=ON
             - name: Build
