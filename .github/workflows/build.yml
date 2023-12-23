@@ -14,7 +14,7 @@ on:
 jobs:
     build:
         env:
-          CCACHE_DIR: ~/.ccache
+          CCACHE_DIR: ~/work/.ccache
         runs-on: ${{matrix.os}}
         strategy:
             fail-fast: false
@@ -52,12 +52,15 @@ jobs:
               id: cache-ccache
               uses: actions/cache@v3
               with:
-                path: ~/.ccache
+                path: ~/work/.ccache
                 key: ccache-${{ hashFiles('**/configure-llvm.sh','**/build-llvm.sh') }}-${{ matrix.build_type }}
                 restore-keys: |
                     ccache-${{ hashFiles('**/configure-llvm.sh','**/build-llvm.sh') }}-${{ matrix.build_type }}
                     ccache-${{ hashFiles('**/configure-llvm.sh','**/build-llvm.sh') }}-
                     ccache-
+            - name: Create CCache dir
+              if: steps.cache-ccache.outputs.cache-hit!= 'true'
+              run: mkdir -p ~/work/.ccache
             - name: Configure&Build LLVM CMake
               run: |
                 sh utils/configure-llvm.sh
