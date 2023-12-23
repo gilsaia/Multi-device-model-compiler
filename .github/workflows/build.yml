@@ -14,7 +14,7 @@ on:
 jobs:
     build:
         env:
-          CCACHE_DIR: ~/work/.ccache
+          CCACHE_DIR: /home/runner/work/.ccache
         runs-on: ${{matrix.os}}
         strategy:
             fail-fast: false
@@ -49,12 +49,12 @@ jobs:
               working-directory: 3rdparty/onnx-mlir/third_party/onnx
               run: python3 -m pip install -v .
             - name: Create CCache dir
-              run: mkdir -p ~/work/.ccache
+              run: mkdir -p /home/runner/work/.ccache
             - name: Cache CCache 
               id: cache-ccache
               uses: actions/cache@v3
               with:
-                path: ~/work/.ccache
+                path: /home/runner/work/.ccache
                 key: ccache-${{ hashFiles('**/configure-llvm.sh','**/build-llvm.sh') }}-${{ matrix.build_type }}
                 restore-keys: |
                     ccache-${{ hashFiles('**/configure-llvm.sh','**/build-llvm.sh') }}-${{ matrix.build_type }}
