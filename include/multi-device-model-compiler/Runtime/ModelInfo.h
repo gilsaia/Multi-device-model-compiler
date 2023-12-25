@@ -13,14 +13,16 @@ extern llvm::cl::opt<std::string> InputShapes;
 extern llvm::cl::opt<std::string> OutputShapes;
 
 struct ModelInfo {
-  static ModelInfo GetModelInfo();
-  int InputNums();
-  int OutputNums();
-  std::vector<int> &GetInputSize(int idx);
-  std::vector<int> &GetOutputSize(int idx);
+  static ModelInfo *ParseModelInfo();
+  size_t InputNums();
+  size_t OutputNums();
+  size_t GetDim();
+  std::vector<size_t> &GetInputSize(int idx);
+  std::vector<size_t> &GetOutputSize(int idx);
 
 private:
-  std::vector<std::vector<int>> sizes;
+  std::vector<std::vector<size_t>> inputSizes, outputSizes;
+  size_t dim;
 };
 
 } // namespace multi_device
