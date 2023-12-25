@@ -56,10 +56,10 @@ jobs:
               uses: actions/cache@v3
               with:
                 path: /home/runner/work/.ccache
-                key: ccache-${{ hashFiles('**/configure-llvm.sh','**/build-llvm.sh') }}-${{ matrix.build_type }}
+                key: ccache-${{ matrix.build_type }}-${{ github.ref_name }}
                 restore-keys: |
-                    ccache-${{ hashFiles('**/configure-llvm.sh','**/build-llvm.sh') }}-${{ matrix.build_type }}
-                    ccache-${{ hashFiles('**/configure-llvm.sh','**/build-llvm.sh') }}-
+                    ccache-${{ matrix.build_type }}-${{ github.ref_name }}
+                    ccache-${{ matrix.build_type }}-
                     ccache-
             - name: Configure&Build LLVM CMake
               run: |
