@@ -1,0 +1,9 @@
+add_library(MultiDeviceCompileUtils STATIC CommandUtils.cpp CompileOptions.cpp)
+
+target_include_directories(MultiDeviceCompileUtils PRIVATE
+${MultiDeviceConfigDir})
+
+add_dependencies(MultiDeviceCompileUtils MultiDeviceExternalUtil)
+
+target_link_libraries(MultiDeviceCompileUtils PUBLIC
+LLVMSupport)
