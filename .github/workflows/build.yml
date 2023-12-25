@@ -15,7 +15,7 @@ jobs:
     build:
         env:
           CCACHE_DIR: /home/runner/work/.ccache
-          CCACHE_MAXSIZE: 2G
+          CCACHE_MAXSIZE: 1G
         runs-on: ${{matrix.os}}
         strategy:
             fail-fast: false
