@@ -73,8 +73,8 @@ jobs:
               run: cmake --build ${{ github.workspace }}/build --config ${{ matrix.build_type }}
             - name: Save CCache
               id: save-ccache
+              if: ${{ matrix.build_type == 'Release' }}
               uses: actions/cache/save@v3
               with:
                 path: /home/runner/work/.ccache
                 key: ccache-${{ matrix.build_type }}-${{ github.ref_name }}
-                upload-chunk-size: 2048
