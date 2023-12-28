@@ -47,6 +47,9 @@ include_directories(${CMAKE_BINARY_DIR}/3rdparty/onnx-mlir)
 
 #---------------------------------------------------------------
 
+# TPU-Mlir Configure
+add_subdirectory(3rdparty/tpu-mlir)
+#---------------------------------------------------------------
 include_directories(${CMAKE_SOURCE_DIR}/include)
 include_directories(${CMAKE_BINARY_DIR}/include)
 
