@@ -10,6 +10,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/$<CONFIG>/bin)
 set(CMAKE_INCLUDE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/$<CONFIG>/include)
 
 option(USE_CCACHE_BUILD "Use ccache to speedup." ON)
+option(USE_OMP "Use omp." ON)
 
 #---------------------------------------------------------------
 
@@ -49,7 +50,21 @@ include_directories(${CMAKE_BINARY_DIR}/3rdparty/onnx-mlir)
 
 # TPU-Mlir Configure
 add_subdirectory(3rdparty/tpu-mlir)
+include_directories(${CMAKE_SOURCE_DIR}/3rdparty/tpu-mlir/include)
+include_directories(${CMAKE_BINARY_DIR}/3rdparty/tpu-mlir/include)
+include_directories(${TPU_MLIR_THIRDPARTY_INCLUDE})
+link_directories(${TPU_MLIR_THIRDPARTY_LIB})
 #---------------------------------------------------------------
+
+# OMP Configure
+if(USE_OMP)
+    find_package(OpenMP)
+    if(OPENMP_FOUND)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+    endif()
+endif()
+
 include_directories(${CMAKE_SOURCE_DIR}/include)
 include_directories(${CMAKE_BINARY_DIR}/include)
 
