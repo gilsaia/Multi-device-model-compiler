@@ -1,7 +1,3 @@
-if (NOT DEFINED FLATBUFFERS_PATH)
-  message(FATAL_ERROR "Please set FLATBUFFERS_PATH")
-endif()
-message(STATUS "FLATBUFFERS_PATH: ${FLATBUFFERS_PATH}")
 function(compile_fbs)
   get_filename_component(CMAKE_INSTALL_PREFIX_ABS "${CMAKE_BINARY_DIR}" ABSOLUTE)
   foreach(fbs_file IN LISTS ARGN)

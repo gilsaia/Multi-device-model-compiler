@@ -1,10 +1,4 @@
 add_subdirectory(cnpy)
-set(FLATBUFFERS_BUILD_TESTS OFF)
-add_subdirectory(flatbuffers)
-set(DNNL_CPU_RUNTIME OMP)
-set(DNNL_BUILD_EXAMPLES OFF)
-set(DNNL_BUILD_TESTS OFF)
-add_subdirectory(oneDNN)
 
 install(FILES nntoolchain/lib/libbackend_1684.so
               nntoolchain/lib/libbackend_1684x.so

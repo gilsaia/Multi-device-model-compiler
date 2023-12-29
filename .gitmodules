@@ -4,3 +4,9 @@
 [submodule "3rdparty/llvm-project"]
 	path = 3rdparty/llvm-project
 	url = git@github.com:llvm/llvm-project.git
+[submodule "3rdparty/flatbuffers"]
+	path = 3rdparty/flatbuffers
+	url = git@github.com:gilsaia/flatbuffers-package.git
+[submodule "3rdparty/oneDNN"]
+	path = 3rdparty/oneDNN
+	url = git@github.com:oneapi-src/oneDNN.git

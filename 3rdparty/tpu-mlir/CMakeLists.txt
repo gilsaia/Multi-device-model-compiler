@@ -2,20 +2,10 @@ include_directories(include)
 include_directories(${CMAKE_BINARY_DIR}/3rdparty/tpu-mlir/include)
 
 #-------------------------------------------------------------------------------
-# oneDNN Configuration
-#-------------------------------------------------------------------------------
-set(DNNL_PATH ${CMAKE_CURRENT_SOURCE_DIR}/third_party/oneDNN)
-include_directories(${DNNL_PATH}/include)
-#-------------------------------------------------------------------------------
 # cnpy Configuration
 #-------------------------------------------------------------------------------
 set(CNPY_PATH ${CMAKE_CURRENT_SOURCE_DIR}/third_party/cnpy)
 include_directories(${CNPY_PATH})
-#-------------------------------------------------------------------------------
-# flatbuffers Configuration
-#-------------------------------------------------------------------------------
-set(FLATBUFFERS_PATH ${CMAKE_CURRENT_SOURCE_DIR}/third_party/flatbuffers)
-include_directories(${FLATBUFFERS_PATH}/include)
 #-------------------------------------------------------------------------------
 # nntoolchain Configuration
 #-------------------------------------------------------------------------------
@@ -35,9 +25,7 @@ set(PROGRESSBAR_PATH ${CMAKE_CURRENT_SOURCE_DIR}/third_party/progressbar)
 include_directories(${PROGRESSBAR_PATH}/include)
 
 set(TPU_MLIR_THIRDPARTY_INCLUDE 
-${DNNL_PATH}/include 
 ${CNPY_PATH} 
-${FLATBUFFERS_PATH}/include
 ${NNTOOLCHAIN_PATH}/include 
 ${CV18XX_PATH}/include 
 ${PROGRESSBAR_PATH}/include 

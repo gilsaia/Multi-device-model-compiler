@@ -1,10 +1,5 @@
 cmake_minimum_required(VERSION 3.1.0)
 
-if (NOT DEFINED FLATBUFFERS_PATH)
-  message(FATAL_ERROR "Please set FLATBUF_PATH")
-endif()
-message(STATUS "FLATBUFFERS_PATH: ${FLATBUFFERS_PATH}")
-
 function(compile_fbs)
   foreach(fbs_file IN LISTS ARGN)
     get_filename_component(name ${fbs_file} NAME_WE)
