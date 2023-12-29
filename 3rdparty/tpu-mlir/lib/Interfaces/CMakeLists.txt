@@ -26,7 +26,7 @@ function(add_mlir_interface_library name)
     LINK_LIBS PUBLIC
     MLIRIR
   )
-  add_dependencies(MLIR${name} TPUMLIRSupport)
+  add_dependencies(MLIR${name} ModuleAttrGen)
 endfunction(add_mlir_interface_library)
 
 add_mlir_interface_library(InferenceInterface)
