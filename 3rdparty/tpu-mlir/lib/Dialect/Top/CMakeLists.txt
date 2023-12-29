@@ -6,32 +6,57 @@ file(GLOB _sources
           Transforms/ChipOptimize/*.cpp
     )
 
-add_mlir_library(TPUMLIRTop
-  ${_sources}
+add_library(TPUMLIRTop STATIC ${_sources})
+add_dependencies(TPUMLIRTop
+MLIRTopAttrGen
+MLIRTopOpsIncGen
+MLIRTopPassIncGen
+MLIRInferenceInterfaceIncGen
+MLIRFlopsInterfaceIncGen
+MLIRShapeInterfaceIncGen)
+target_include_directories(TPUMLIRTop PUBLIC
+${CMAKE_SOURCE_DIR}/3rdparty/tpu-mlir/include/tpu_mlir/Dialect/Top)
+target_link_libraries(TPUMLIRTop PUBLIC
+MLIRIR
+MLIRPass
+MLIRSupport
+MLIRParser
+MLIRFuncDialect
+MLIRQuantDialect
+MLIRRewrite
+MLIRTransforms
+MLIRInferenceInterface
+MLIRFlopsInterface
+MLIRShapeInterface
+TPUMLIRSupport
+TPUMLIRTrait)
 
-  ADDITIONAL_HEADER_DIRS
-  ${PROJECT_SOURCE_DIR}/include/tpu_mlir/Dialect/Top
+# add_mlir_library(TPUMLIRTop
+#   ${_sources}
 
-  DEPENDS
-  MLIRTopAttrGen
-  MLIRTopOpsIncGen
-  MLIRTopPassIncGen
-  MLIRInferenceInterfaceIncGen
-  MLIRFlopsInterfaceIncGen
-  MLIRShapeInterfaceIncGen
+#   ADDITIONAL_HEADER_DIRS
+#   ${PROJECT_SOURCE_DIR}/include/tpu_mlir/Dialect/Top
 
-  LINK_LIBS PUBLIC
-  MLIRIR
-  MLIRPass
-  MLIRSupport
-  MLIRParser
-  MLIRFuncDialect
-  MLIRQuantDialect
-  MLIRRewrite
-  MLIRTransforms
-  MLIRInferenceInterface
-  MLIRFlopsInterface
-  MLIRShapeInterface
-  TPUMLIRSupport
-  TPUMLIRTrait
-)
+#   DEPENDS
+#   MLIRTopAttrGen
+#   MLIRTopOpsIncGen
+#   MLIRTopPassIncGen
+#   MLIRInferenceInterfaceIncGen
+#   MLIRFlopsInterfaceIncGen
+#   MLIRShapeInterfaceIncGen
+
+#   LINK_LIBS PUBLIC
+#   MLIRIR
+#   MLIRPass
+#   MLIRSupport
+#   MLIRParser
+#   MLIRFuncDialect
+#   MLIRQuantDialect
+#   MLIRRewrite
+#   MLIRTransforms
+#   MLIRInferenceInterface
+#   MLIRFlopsInterface
+#   MLIRShapeInterface
+#   TPUMLIRSupport
+#   TPUMLIRTrait
+# )
