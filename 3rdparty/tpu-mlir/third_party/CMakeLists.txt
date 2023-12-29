@@ -1,11 +1,6 @@
 add_subdirectory(cnpy)
-set(FLATBUFFERS_BUILD_TESTS OFF)
-add_subdirectory(flatbuffers)
 
-install(FILES oneDNN/lib/libdnnl.so
-              oneDNN/lib/libdnnl.so.3
-              oneDNN/lib/libdnnl.so.3.1
-              nntoolchain/lib/libbackend_1684.so
+install(FILES nntoolchain/lib/libbackend_1684.so
               nntoolchain/lib/libbackend_1684x.so
               nntoolchain/lib/libbackend_1686.so
               nntoolchain/lib/libbmlib.so.0

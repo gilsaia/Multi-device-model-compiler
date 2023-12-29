@@ -26,6 +26,8 @@
 #include "src/Dialect/ONNX/ONNXDialect.hpp"
 #include "src/Pass/Passes.hpp"
 
+#include "tpu_mlir/Dialect/Tpu/IR/TpuOps.h"
+
 #include "multi-device-model-compiler/InitUtils.h"
 
 static llvm::cl::OptionCategory
@@ -56,6 +58,7 @@ int main(int argc, char **argv) {
   registry.insert<mlir::ONNXDialect>();
   registry.insert<mlir::tosa::TosaDialect>();
   registry.insert<mlir::shape::ShapeDialect>();
+  registry.insert<tpu::TpuDialect>();
 
   mlir::registerTransformsPasses();
   multi_device::initONNXPasses();
