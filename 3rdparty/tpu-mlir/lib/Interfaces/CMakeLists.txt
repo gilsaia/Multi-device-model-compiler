@@ -13,20 +13,24 @@ set(
 )
 
 function(add_mlir_interface_library name)
-  add_mlir_library(
-    MLIR${name}
-    ${name}.cpp
+  add_library(MLIR${name} STATIC ${name}.cpp)
+  target_include_directories(MLIR${name} PUBLIC ${MLIR_MAIN_INCLUDE_DIR}/mlir/Interfaces)
+  add_dependencies(MLIR${name} MLIR${name}IncGen ModuleAttrGen)
+  target_link_libraries(MLIR${name} PUBLIC MLIRIR)
+  # add_mlir_library(
+  #   MLIR${name}
+  #   ${name}.cpp
 
-    ADDITIONAL_HEADER_DIRS
-    ${MLIR_MAIN_INCLUDE_DIR}/mlir/Interfaces
+  #   ADDITIONAL_HEADER_DIRS
+  #   ${MLIR_MAIN_INCLUDE_DIR}/mlir/Interfaces
 
-    DEPENDS
-    MLIR${name}IncGen
+  #   DEPENDS
+  #   MLIR${name}IncGen
 
-    LINK_LIBS PUBLIC
-    MLIRIR
-  )
-  add_dependencies(MLIR${name} ModuleAttrGen)
+  #   LINK_LIBS PUBLIC
+  #   MLIRIR
+  # )
+  # add_dependencies(MLIR${name} ModuleAttrGen)
 endfunction(add_mlir_interface_library)
 
 add_mlir_interface_library(InferenceInterface)
