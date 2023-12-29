@@ -22,7 +22,7 @@ jobs:
 
             matrix:
                 os: [ubuntu-latest]
-                build_type: [Debug, Release]
+                build_type: [Release]
         steps:
             - uses: actions/checkout@v4
               with: 

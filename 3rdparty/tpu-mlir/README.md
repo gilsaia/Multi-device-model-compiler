@@ -1,0 +1,1 @@
+This is a self-maintained version of the TPU-MLIR project.The primary goal of this customized version is to streamline the focus specifically on TPU-MLIR features, reducing interference from other extraneous items present in the official repository.
