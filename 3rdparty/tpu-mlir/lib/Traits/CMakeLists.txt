@@ -5,10 +5,3 @@ add_dependencies(TPUMLIRTrait ModuleAttrGen)
 target_link_libraries(TPUMLIRTrait PUBLIC
 MLIRIR
 MLIRQuantDialect)
-
-# add_llvm_library(TPUMLIRTrait
-#   ${_sources}
-#   LINK_LIBS PUBLIC
-#   MLIRIR
-#   MLIRQuantDialect
-# )
