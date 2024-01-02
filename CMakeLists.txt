@@ -79,5 +79,5 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 include_directories(${CMAKE_BINARY_DIR}/include)
 
 add_subdirectory(include/multi-device-model-compiler)
-add_subdirectory(tools)
 add_subdirectory(lib)
+add_subdirectory(tools)

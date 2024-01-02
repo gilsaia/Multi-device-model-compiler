@@ -1,2 +1,2 @@
 add_subdirectory(Utils)
-add_subdirectory(Pass)
+add_subdirectory(Dialect)
