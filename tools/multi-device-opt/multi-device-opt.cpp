@@ -28,6 +28,7 @@
 
 #include "tpu_mlir/Dialect/Tpu/IR/TpuOps.h"
 
+#include "multi-device-model-compiler/Dialect/Device/IR/Device.h"
 #include "multi-device-model-compiler/InitUtils.h"
 
 static llvm::cl::OptionCategory
@@ -59,6 +60,7 @@ int main(int argc, char **argv) {
   registry.insert<mlir::tosa::TosaDialect>();
   registry.insert<mlir::shape::ShapeDialect>();
   registry.insert<tpu::TpuDialect>();
+  registry.insert<multi_device::device::DeviceDialect>();
 
   mlir::registerTransformsPasses();
   multi_device::initONNXPasses();

@@ -10,7 +10,7 @@ def Device_Dialect: Dialect {
     let summary=[{
         The device dialect used to describe device attr used for optimize model.
     }];
-    let useDefaultAttributePrinterParser = 1;
+    // let useDefaultAttributePrinterParser = 1;
 }
 
 def DeviceType : I64EnumAttr<

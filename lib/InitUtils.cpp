@@ -65,4 +65,7 @@ void multi_device::initConvertPassPipelines() {
       multi_device::pipelines::createMLIRToCPUPipeline);
 }
 
-void multi_device::initMultiDevicePasses() { registerONNXPasses(); }
+void multi_device::initMultiDevicePasses() {
+  registerONNXPasses();
+  device::registerDevicePasses();
+}

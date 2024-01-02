@@ -1,4 +1,4 @@
-#include "multi-device-model-compiler/Pass/ONNX/Passes.h"
+#include "multi-device-model-compiler/Dialect/ONNX/Transform/Passes.h"
 #include "multi-device-model-compiler/Pipelines/ConvertPipelines.h"
 
 #include "mlir/Conversion/AffineToStandard/AffineToStandard.h"
