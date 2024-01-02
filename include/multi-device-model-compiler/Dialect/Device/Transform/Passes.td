@@ -10,6 +10,11 @@ def AddDeviceTypeToFunc: Pass<"add-device-type-to-func","mlir::func::FuncOp">{
     }];
     let constructor="multi_device::device::createAddDeviceTypeToFuncPass()";
     let dependentDialects=["mlir::func::FuncDialect","multi_device::device::DeviceDialect"];
+
+    let options=[
+        Option<"deviceType","type","multi_device::device::DeviceType",
+        "multi_device::device::DeviceType::unknown","Target device type to convert">
+    ];
 } 
 
 #endif // MULTI_DEVICE_MODEL_COMPILER_DIALECT_DEVICE_TRANSFORM_

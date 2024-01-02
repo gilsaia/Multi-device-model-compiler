@@ -1,1 +1,2 @@
 add_subdirectory(ConvertONNXToTosa)
+add_subdirectory(ConvertTosaToTPU)

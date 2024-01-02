@@ -13,6 +13,8 @@ namespace device {
 
 std::unique_ptr<mlir::OperationPass<mlir::func::FuncOp>>
 createAddDeviceTypeToFuncPass();
+std::unique_ptr<mlir::OperationPass<mlir::func::FuncOp>>
+createAddDeviceTypeToFuncPass(const AddDeviceTypeToFuncOptions &type);
 
 #define GEN_PASS_REGISTRATION
 #include "multi-device-model-compiler/Dialect/Device/Transform/Passes.h.inc"
