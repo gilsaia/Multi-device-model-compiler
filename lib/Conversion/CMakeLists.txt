@@ -1,2 +1,5 @@
 add_subdirectory(ConvertONNXToTosa)
 add_subdirectory(ConvertTosaToTPU)
+
+add_library(MultiDeviceConvertPasses INTERFACE)
+target_link_libraries(MultiDeviceConvertPasses INTERFACE ConvertTosaToTPU ConvertONNXToTosaFix)

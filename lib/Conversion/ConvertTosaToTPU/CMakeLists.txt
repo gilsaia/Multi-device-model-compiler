@@ -1,5 +1,5 @@
 add_library(ConvertTosaToTPU STATIC ConvertTosaToTPU.cpp)
 target_link_libraries(ConvertTosaToTPU PUBLIC
-MLIRTosaDialect MLIRTransforms
-TPUMLIRTpu
+MLIRTosaDialect MLIRTransforms MLIRIR MLIRFuncDialect
+TPUMLIRTpu TPUMLIRTop
 )

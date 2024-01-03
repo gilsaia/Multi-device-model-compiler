@@ -3,6 +3,7 @@
 
 namespace multi_device {
 void initONNXPasses();
+void initConvertPasses();
 void initConvertPassPipelines();
 void initMultiDevicePasses();
 } // namespace multi_device

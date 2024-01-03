@@ -64,6 +64,7 @@ int main(int argc, char **argv) {
 
   mlir::registerTransformsPasses();
   multi_device::initONNXPasses();
+  multi_device::initConvertPasses();
   multi_device::initConvertPassPipelines();
   multi_device::initMultiDevicePasses();
 
