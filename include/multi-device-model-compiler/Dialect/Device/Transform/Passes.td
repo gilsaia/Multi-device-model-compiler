@@ -3,7 +3,7 @@
 
 include "mlir/Pass/PassBase.td"
 
-def AddDeviceTypeToFunc: Pass<"add-device-type-to-func","mlir::func::FuncOp">{
+def AddDeviceTypeToFunc: Pass<"add-device-type-to-func","mlir::ModuleOp">{
     let summary="Add Device type to func op.";
     let description=[{
         We need to know what device to optimize,so add device type is needed.

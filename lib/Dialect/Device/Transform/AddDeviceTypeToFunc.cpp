@@ -28,19 +28,17 @@ struct AddDeviceTypeToFuncPass final
 } // namespace
 
 void AddDeviceTypeToFuncPass::runOnOperation() {
-  func::FuncOp op = getOperation();
-  op.walk([&](tosa::TosaOp op) {
-    op.getOperation()->setAttr(
-        "device", device::DeviceTypeAttr::get(op.getContext(), deviceType));
-  });
+  ModuleOp op = getOperation();
+  op->setAttr("module.device",
+              device::DeviceTypeAttr::get(op.getContext(), deviceType));
 }
 
-std::unique_ptr<OperationPass<func::FuncOp>>
+std::unique_ptr<OperationPass<ModuleOp>>
 multi_device::device::createAddDeviceTypeToFuncPass() {
   return std::make_unique<AddDeviceTypeToFuncPass>();
 }
 
-std::unique_ptr<mlir::OperationPass<mlir::func::FuncOp>>
+std::unique_ptr<mlir::OperationPass<ModuleOp>>
 multi_device::device::createAddDeviceTypeToFuncPass(
     const device::AddDeviceTypeToFuncOptions &options) {
   return std::make_unique<AddDeviceTypeToFuncPass>(options);
