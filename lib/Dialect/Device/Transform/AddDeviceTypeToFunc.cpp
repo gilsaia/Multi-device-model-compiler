@@ -20,9 +20,8 @@ struct AddDeviceTypeToFuncPass final
           AddDeviceTypeToFuncPass> {
   using AddDeviceTypeToFuncBase::AddDeviceTypeToFuncBase;
 
-  AddDeviceTypeToFuncPass(const device::AddDeviceTypeToFuncOptions &options) {
-    this->deviceType = options.deviceType;
-  }
+  AddDeviceTypeToFuncPass(const device::AddDeviceTypeToFuncOptions &options)
+      : AddDeviceTypeToFuncBase(options) {}
   void runOnOperation() override;
 };
 } // namespace
@@ -45,6 +44,8 @@ void AddDeviceTypeToFuncPass::runOnOperation() {
     auto npz_name = loc.getFilename().str() + ".npz";
     op->setAttr("module.weight_file",
                 StringAttr::get(op->getContext(), npz_name));
+    op->setAttr("module.FLOPs",
+                IntegerAttr::get(IntegerType::get(op->getContext(), 64), 0));
   }
 }
 

@@ -7,13 +7,16 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "tpu_mlir/Dialect/Tpu/Transforms/Passes.h"
 #include "mlir/Transforms/GreedyPatternRewriteDriver.h"
+#include "tpu_mlir/Dialect/Tpu/Transforms/Passes.h"
 
 using namespace llvm;
 
 namespace tpu_mlir {
 namespace tpu {
+
+#define GEN_PASS_DEF_OPREORDER
+#include "tpu_mlir/Dialect/Tpu/Transforms/Passes.h.inc"
 
 // make sure operands is nearest to owner op
 struct OpReorderPattern : public RewritePattern {
@@ -114,7 +117,7 @@ struct AttentionReorderPattern : public RewritePattern {
   }
 };
 
-class OpReorderPass : public OpReorderBase<OpReorderPass> {
+class OpReorderPass : public impl::OpReorderBase<OpReorderPass> {
 public:
   OpReorderPass() {}
   void runOnOperation() override {

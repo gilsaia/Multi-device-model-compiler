@@ -17,11 +17,15 @@ using namespace llvm;
 using namespace tpu_mlir::backend;
 namespace tpu_mlir {
 namespace tpu {
+
+#define GEN_PASS_DEF_WEIGHTREORDER
+#include "tpu_mlir/Dialect/Tpu/Transforms/Passes.h.inc"
+
 extern void populateWeightReorderCV18xxPatterns(RewritePatternSet *patterns);
 extern void populateWeightReorderBM1684Patterns(RewritePatternSet *patterns);
 extern void populateWeightReorderBM1684XPatterns(RewritePatternSet *patterns);
 
-class WeightReorderPass : public WeightReorderBase<WeightReorderPass> {
+class WeightReorderPass : public impl::WeightReorderBase<WeightReorderPass> {
 public:
   WeightReorderPass() {}
   void runOnOperation() override {

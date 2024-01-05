@@ -43,3 +43,5 @@ examples/*.mlir
 examples/*.tmp
 examples/*.ll
 examples/*.bc
+examples/*.bmodel
+examples/*.json

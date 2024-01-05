@@ -11,6 +11,10 @@
 using namespace llvm;
 namespace tpu_mlir {
 namespace tpu {
+
+#define GEN_PASS_DEF_DISTRIBUTE
+#include "tpu_mlir/Dialect/Tpu/Transforms/Passes.h.inc"
+
 // only >= 4MB distribute to multi devices
 static const int64_t WEIGHT_LIMIT = 0x400000;
 
@@ -110,7 +114,7 @@ private:
   int64_t num_devices;
 };
 
-class DistributePass : public DistributeBase<DistributePass> {
+class DistributePass : public impl::DistributeBase<DistributePass> {
 public:
   DistributePass() {}
   void runOnOperation() override {

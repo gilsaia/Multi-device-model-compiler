@@ -9,11 +9,10 @@
 
 #pragma once
 
-#include "tpu_mlir/Dialect/Top/IR/TopOps.h"
-#include "tpu_mlir/Dialect/Tpu/IR/TpuOps.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/Dialect/Quant/QuantOps.h"
-
+#include "tpu_mlir/Dialect/Top/IR/TopOps.h"
+#include "tpu_mlir/Dialect/Tpu/IR/TpuOps.h"
 
 namespace tpu_mlir {
 namespace tpu {
@@ -32,8 +31,10 @@ std::unique_ptr<OperationPass<ModuleOp>> createDistributePass();
 std::unique_ptr<OperationPass<ModuleOp>> createParallelPass();
 
 #define GEN_PASS_REGISTRATION
-#define GEN_PASS_CLASSES
+#define GEN_PASS_DECL
 #include "tpu_mlir/Dialect/Tpu/Transforms/Passes.h.inc"
 
-} // namespace top
-} // namespace mlir
+std::unique_ptr<OperationPass<ModuleOp>> createCodegenPass(const CodegenOptions &options);
+
+} // namespace tpu
+} // namespace tpu_mlir

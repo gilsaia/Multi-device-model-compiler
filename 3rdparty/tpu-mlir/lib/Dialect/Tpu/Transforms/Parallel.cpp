@@ -16,6 +16,10 @@ using namespace llvm;
 
 namespace tpu_mlir {
 namespace tpu {
+
+#define GEN_PASS_DEF_PARALLEL
+#include "tpu_mlir/Dialect/Tpu/Transforms/Passes.h.inc"
+
 extern void populateParalleBM1684XPatterns(RewritePatternSet *patterns,
                                            int coreNum);
 
@@ -253,7 +257,7 @@ bool forAll(IndexingMapsInterface op, int num_core = 1) {
   return true;
 };
 
-class ParallelPass : public ParallelBase<ParallelPass> {
+class ParallelPass : public impl::ParallelBase<ParallelPass> {
 public:
   ParallelPass() {}
   void runOnOperation() override {

@@ -8,13 +8,16 @@
 //===----------------------------------------------------------------------===//
 #include "AddressAssign/BMAddressAssign.h"
 #include "AddressAssign/CVAddressAssign.h"
-#include "tpu_mlir/Dialect/Tpu/Transforms/Passes.h"
 #include "mlir/Transforms/GreedyPatternRewriteDriver.h"
+#include "tpu_mlir/Dialect/Tpu/Transforms/Passes.h"
 
 using namespace llvm;
 
 namespace tpu_mlir {
 namespace tpu {
+
+#define GEN_PASS_DEF_ADDRESSASSIGN
+#include "tpu_mlir/Dialect/Tpu/Transforms/Passes.h.inc"
 
 extern void populateGlobalBufferBM168xPatterns(RewritePatternSet *patterns);
 
@@ -70,7 +73,7 @@ public:
   }
 };
 
-class AddressAssignPass : public AddressAssignBase<AddressAssignPass> {
+class AddressAssignPass : public impl::AddressAssignBase<AddressAssignPass> {
 public:
   AddressAssignPass() {}
   void runOnOperation() override {

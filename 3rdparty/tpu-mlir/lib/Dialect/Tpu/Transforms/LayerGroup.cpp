@@ -16,7 +16,10 @@ using namespace llvm;
 namespace tpu_mlir {
 namespace tpu {
 
-class LayerGroupPass : public LayerGroupBase<LayerGroupPass> {
+#define GEN_PASS_DEF_LAYERGROUP
+#include "tpu_mlir/Dialect/Tpu/Transforms/Passes.h.inc"
+
+class LayerGroupPass : public impl::LayerGroupBase<LayerGroupPass> {
 public:
   LayerGroupPass() {}
   void runOnOperation() override {

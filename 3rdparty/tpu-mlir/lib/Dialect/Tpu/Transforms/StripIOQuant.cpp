@@ -13,6 +13,9 @@
 namespace tpu_mlir {
 namespace tpu {
 
+#define GEN_PASS_DEF_STRIPIOQUANT
+#include "tpu_mlir/Dialect/Tpu/Transforms/Passes.h.inc"
+
 bool isF32(Value v) { return isa<Float32Type>(module::getStorageType(v)); }
 bool isF16(Value v) { return isa<Float16Type>(module::getStorageType(v)); }
 
@@ -151,7 +154,7 @@ struct StripOutputQuantCpuCastPattern
   };
 };
 
-class StripIOQuantPass : public StripIOQuantBase<StripIOQuantPass> {
+class StripIOQuantPass : public impl::StripIOQuantBase<StripIOQuantPass> {
 public:
   StripIOQuantPass() {}
   void runOnOperation() override {

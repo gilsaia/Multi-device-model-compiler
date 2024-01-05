@@ -7,14 +7,18 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "tpu_mlir/Dialect/Tpu/Transforms/Passes.h"
 #include "tpu_mlir/Backend/CV18xx/CV18xx.h"
+#include "tpu_mlir/Dialect/Tpu/Transforms/Passes.h"
 
 using namespace llvm;
 
 namespace tpu_mlir {
 namespace tpu {
-class OpDividePass : public OpDivideBase<OpDividePass> {
+
+#define GEN_PASS_DEF_OPDIVIDE
+#include "tpu_mlir/Dialect/Tpu/Transforms/Passes.h.inc"
+
+class OpDividePass : public impl::OpDivideBase<OpDividePass> {
 public:
   typedef struct {
     Operation *op;
