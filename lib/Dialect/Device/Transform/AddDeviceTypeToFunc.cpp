@@ -31,6 +31,21 @@ void AddDeviceTypeToFuncPass::runOnOperation() {
   ModuleOp op = getOperation();
   op->setAttr("module.device",
               device::DeviceTypeAttr::get(op.getContext(), deviceType));
+  if (deviceType == device::DeviceType::TPU) {
+    op.setName("main_graph");
+    op->setAttr("module.chip", StringAttr::get(op.getContext(), "bm1684x"));
+    op->setAttr("module.mode", StringAttr::get(op.getContext(), "F32"));
+    op->setAttr("module.asymmetric", BoolAttr::get(op.getContext(), false));
+    op->setAttr("module.state",
+                StringAttr::get(op->getContext(), "TPU_LOWERED"));
+    FileLineColLoc loc = op.getLoc().dyn_cast<FileLineColLoc>();
+    if (!loc) {
+      llvm_unreachable("Can't Find file name\n");
+    }
+    auto npz_name = loc.getFilename().str() + ".npz";
+    op->setAttr("module.weight_file",
+                StringAttr::get(op->getContext(), npz_name));
+  }
 }
 
 std::unique_ptr<OperationPass<ModuleOp>>

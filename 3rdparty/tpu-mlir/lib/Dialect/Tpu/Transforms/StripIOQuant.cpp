@@ -167,8 +167,10 @@ public:
       patterns.add<StripOutputQuantTpuCastPattern>(ctx);
       patterns.add<StripOutputQuantCpuCastPattern>(ctx);
     }
-    applyPatternsAndFoldGreedily(func, std::move(patterns));
-    module::updateModuleTypes();
+    if (mlir::failed(applyPatternsAndFoldGreedily(func, std::move(patterns)))) {
+      mlir::Pass::signalPassFailure();
+    }
+    module::updateModuleTypeSafe(mOp);
   }
 };
 

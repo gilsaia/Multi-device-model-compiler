@@ -101,6 +101,7 @@ Operation *getNextOp(Operation *op, int i = 0);
 Value getOperand(Operation *op, int i);
 bool isSameOp(Operation *op0, Operation *op1);
 void updateModuleTypes();
+void updateModuleTypeSafe(ModuleOp op);
 void removeUnusedOp();
 int64_t getAddress(Value v);
 void setAddress(Value v, int64_t addr);
