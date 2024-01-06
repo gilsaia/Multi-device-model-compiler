@@ -1,4 +1,5 @@
 #include "multi-device-model-compiler/InitUtils.h"
+#include "multi-device-model-compiler/Conversion/ConvertTosaToTPU/ConvertTosaToTPU.h"
 #include "multi-device-model-compiler/Pass/InitPasses.h"
 #include "multi-device-model-compiler/Pipelines/ConvertPipelines.h"
 
@@ -56,6 +57,12 @@ void multi_device::initONNXPasses() {
   });
 }
 
+void multi_device::initConvertPasses() {
+  mlir::registerPass([]() -> std::unique_ptr<mlir::Pass> {
+    return createConvertTosaToTPUPass();
+  });
+}
+
 void multi_device::initConvertPassPipelines() {
   mlir::PassPipelineRegistration<>(
       "onnx-to-mlir", "Pipeline lowering ONNX-IR to MLIR",
@@ -63,6 +70,12 @@ void multi_device::initConvertPassPipelines() {
   mlir::PassPipelineRegistration<>(
       "mlir-to-cpu", "Pipeline lowering TOSA to CPU code",
       multi_device::pipelines::createMLIRToCPUPipeline);
+  mlir::PassPipelineRegistration<>(
+      "mlir-to-tpu", "Pipeline lowering TOSA to TPU code",
+      multi_device::pipelines::createMLIRToTPUPipeline);
 }
 
-void multi_device::initMultiDevicePasses() { registerONNXPasses(); }
+void multi_device::initMultiDevicePasses() {
+  registerONNXPasses();
+  device::registerDevicePasses();
+}

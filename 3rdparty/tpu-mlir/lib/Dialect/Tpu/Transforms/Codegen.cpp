@@ -7,8 +7,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "Codegen/CV18xxCodegen.hpp"
 #include "Codegen/BM168xCodegen.hpp"
+#include "Codegen/CV18xxCodegen.hpp"
 #include "tpu_mlir/Dialect/Tpu/Transforms/Passes.h"
 
 using namespace llvm;
@@ -16,9 +16,13 @@ using namespace llvm;
 namespace tpu_mlir {
 namespace tpu {
 
-class CodegenPass : public CodegenBase<CodegenPass> {
+#define GEN_PASS_DEF_CODEGEN
+#include "tpu_mlir/Dialect/Tpu/Transforms/Passes.h.inc"
+
+class CodegenPass : public impl::CodegenBase<CodegenPass> {
 public:
   CodegenPass() {}
+  CodegenPass(const CodegenOptions &options) : CodegenBase(options) {}
   void runOnOperation() override {
     assert(module::isState(module::State::TPU_ADDRESSED));
     std::string filename = this->model_file;
@@ -43,6 +47,11 @@ public:
 
 std::unique_ptr<OperationPass<ModuleOp>> createCodegenPass() {
   return std::make_unique<CodegenPass>();
+}
+
+std::unique_ptr<OperationPass<ModuleOp>>
+createCodegenPass(const CodegenOptions &options) {
+  return std::make_unique<CodegenPass>(options);
 }
 
 } // namespace tpu

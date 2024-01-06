@@ -112,8 +112,8 @@ Value getOriValue(Value v) {
     FuncOp func_op;
     if (isa<FuncOp>(v.getParentBlock()->getParentOp()))
       func_op = cast<FuncOp>(v.getParentBlock()->getParentOp());
-    else if (isa<tpu::LoopOp, tpu::IfOp, top::LoopOp, top::IfOp>
-             (v.getParentBlock()->getParentOp())) {
+    else if (isa<tpu::LoopOp, tpu::IfOp, top::LoopOp, top::IfOp>(
+                 v.getParentBlock()->getParentOp())) {
       return getOriValue(v.getParentBlock()->getParentOp()->getOperand(idx));
     } else
       func_op = v.getParentBlock()->getParentOp()->getParentOfType<FuncOp>();
@@ -196,7 +196,7 @@ Value getOperand(Operation *op, int i) {
 }
 
 static void updateModuleTypes(ModuleOp s) {
-  Builder builder(ctx);
+  Builder builder(s.getContext());
   // update callee func's return types
   for (auto func : s.getOps<FuncOp>()) {
     if (func.getName() == "main") {
@@ -249,6 +249,8 @@ static void updateModuleTypes(ModuleOp s) {
                                         llvm::ArrayRef<Type>{returns});
   mainFunc.setType(fnType);
 }
+
+void updateModuleTypeSafe(ModuleOp op) { updateModuleTypes(op); }
 
 void updateModuleTypes() {
   auto modules = getAllModules();

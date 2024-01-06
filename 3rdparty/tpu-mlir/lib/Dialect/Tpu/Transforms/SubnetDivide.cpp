@@ -11,14 +11,18 @@
 #include "tpu_mlir/Dialect/Tpu/Transforms/Passes.h"
 #include "tpu_mlir/Support/Patterns.h"
 
-#include "mlir/Transforms/GreedyPatternRewriteDriver.h"
 #include "mlir/IR/Iterators.h"
+#include "mlir/Transforms/GreedyPatternRewriteDriver.h"
 
 using namespace llvm;
 
 using namespace tpu_mlir::backend;
 namespace tpu_mlir {
 namespace tpu {
+
+#define GEN_PASS_DEF_SUBNETDIVIDE
+#include "tpu_mlir/Dialect/Tpu/Transforms/Passes.h.inc"
+
 static void getInputsOutputs(std::vector<Operation *> &ops,
                              std::vector<Value> &inputs,
                              std::vector<Value> &outputs, bool &has_NoneOp) {
@@ -150,7 +154,7 @@ static inline void LoopMode(Operation *op, int &mode) {
   return;
 }
 
-class SubnetDividePass : public SubnetDivideBase<SubnetDividePass> {
+class SubnetDividePass : public impl::SubnetDivideBase<SubnetDividePass> {
 public:
   SubnetDividePass() {}
   void runOnOperation() override {
@@ -635,22 +639,24 @@ public:
           /* if Loop's Operand (such as cond, v_initial) is WeightOp,
              will create tensor for to replace it, because will change
             the value during iteration */
-          for (int i = 0; i< (*it)->ops[0]->getNumOperands() - 1; i++) {
-            if (isa<top::WeightOp>(module::getOriValue
-                  ((*it)->ops[0]->getOperand(i+1)).getDefiningOp())) {
-              //create a D2D op(but use Addconst instead)
+          for (int i = 0; i < (*it)->ops[0]->getNumOperands() - 1; i++) {
+            if (isa<top::WeightOp>(
+                    module::getOriValue((*it)->ops[0]->getOperand(i + 1))
+                        .getDefiningOp())) {
+              // create a D2D op(but use Addconst instead)
               attrs.clear();
-              attrs.push_back(
-                builder.getNamedAttr("const_val", builder.getF64FloatAttr(0.f)));
-              auto d2d_loc = module::getLocLike((*it)->ops[0], std::to_string(i));
+              attrs.push_back(builder.getNamedAttr(
+                  "const_val", builder.getF64FloatAttr(0.f)));
+              auto d2d_loc =
+                  module::getLocLike((*it)->ops[0], std::to_string(i));
               auto d2d_op = builder.create<tpu::D2DOp>(
-                    d2d_loc, (*it)->ops[0]->getOperand(i+1).getType(),
-                    ValueRange{(*it)->ops[0]->getOperand(i+1)}, attrs);
+                  d2d_loc, (*it)->ops[0]->getOperand(i + 1).getType(),
+                  ValueRange{(*it)->ops[0]->getOperand(i + 1)}, attrs);
               ops.emplace_back(d2d_op);
-              (*it)->ops[0]->getOperand(i+1)
-                      .replaceUsesWithIf(d2d_op->getResult(0),
-                                             [&](OpOperand &use) {
-                                               return isa<tpu::LoopOp>(use.getOwner());});
+              (*it)->ops[0]->getOperand(i + 1).replaceUsesWithIf(
+                  d2d_op->getResult(0), [&](OpOperand &use) {
+                    return isa<tpu::LoopOp>(use.getOwner());
+                  });
             }
           }
 
@@ -707,8 +713,7 @@ public:
             // insert WeightOp & constFill op into previous subnet
             auto iit = std::prev(it, 1);
             if (!ops.empty()) {
-              (*iit)->ops.insert((*iit)->ops.end(),
-                               ops.begin(), ops.end());
+              (*iit)->ops.insert((*iit)->ops.end(), ops.begin(), ops.end());
             }
 
             (*iit)->ops.insert((*iit)->ops.end(),
@@ -720,8 +725,7 @@ public:
                                      new subnet_basic_info);
             (*it)->type = dynamic ? RunMode::TPU_DYNAMIC : RunMode::TPU_STATIC;
             if (!ops.empty()) {
-              (*it)->ops.insert((*it)->ops.end(),
-                               ops.begin(), ops.end());
+              (*it)->ops.insert((*it)->ops.end(), ops.begin(), ops.end());
             }
 
             (*it)->ops.insert((*it)->ops.end(),
@@ -1104,11 +1108,11 @@ public:
 
         for (int i = 0; i < fnInputs.size(); i++) {
           auto loc = module::getLocLike(module::getOriValue(fnInputs[i]),
-                     "_id_" + std::to_string(subnet->index));
+                                        "_id_" + std::to_string(subnet->index));
           locs.push_back(loc);
         }
 
-        auto  new_loc = FusedLoc::get(module::getCtx(), locs);
+        auto new_loc = FusedLoc::get(module::getCtx(), locs);
         auto identityOp =
             builder.create<tpu::IdentityOp>(new_loc, outType, fnInputs);
         subnet->ops.emplace_back(identityOp.getOperation());
@@ -1159,11 +1163,11 @@ public:
 
         for (int i = 0; i < fnInputs.size(); i++) {
           auto loc = module::getLocLike(module::getOriValue(fnInputs[i]),
-                     "_id_" + std::to_string(subnet->index));
+                                        "_id_" + std::to_string(subnet->index));
           locs.push_back(loc);
         }
 
-        auto  new_loc = FusedLoc::get(module::getCtx(), locs);
+        auto new_loc = FusedLoc::get(module::getCtx(), locs);
         auto identityOp =
             builder.create<tpu::IdentityOp>(new_loc, outType, fnInputs);
         subnet->ops.emplace_back(identityOp.getOperation());

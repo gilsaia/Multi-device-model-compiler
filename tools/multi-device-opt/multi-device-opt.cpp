@@ -28,6 +28,7 @@
 
 #include "tpu_mlir/Dialect/Tpu/IR/TpuOps.h"
 
+#include "multi-device-model-compiler/Dialect/Device/IR/Device.h"
 #include "multi-device-model-compiler/InitUtils.h"
 
 static llvm::cl::OptionCategory
@@ -45,6 +46,18 @@ static llvm::cl::opt<std::string>
 
 using namespace mlir;
 
+// TPU-MLIR Passes need to set something special,so we need to check if there is
+// a `mlir-to-tpu`
+bool checkIsTPU(int argc, char **argv) {
+  for (int i = argc - 1; i > 0; --i) {
+    std::string arg(argv[i]);
+    if (arg.find("--mlir-to-tpu") != std::string::npos) {
+      return true;
+    }
+  }
+  return false;
+}
+
 int main(int argc, char **argv) {
   llvm::InitLLVM y(argc, argv);
 
@@ -59,9 +72,11 @@ int main(int argc, char **argv) {
   registry.insert<mlir::tosa::TosaDialect>();
   registry.insert<mlir::shape::ShapeDialect>();
   registry.insert<tpu::TpuDialect>();
+  registry.insert<multi_device::device::DeviceDialect>();
 
   mlir::registerTransformsPasses();
   multi_device::initONNXPasses();
+  multi_device::initConvertPasses();
   multi_device::initConvertPassPipelines();
   multi_device::initMultiDevicePasses();
 
@@ -73,6 +88,21 @@ int main(int argc, char **argv) {
   mlir::registerDefaultTimingManagerCLOptions();
 
   MlirOptMainConfig::registerCLOptions(registry);
+
+  if (checkIsTPU(argc, argv)) {
+    char **n_argv = new char *[argc + 2];
+    for (int i = 0; i < argc; ++i) {
+      n_argv[i] = argv[i];
+    }
+    std::string debuginfo("--mlir-print-debuginfo");
+    n_argv[argc] = new char[debuginfo.size() + 1];
+    strcpy(n_argv[argc], debuginfo.c_str());
+    std::string disablethreading("--mlir-disable-threading");
+    n_argv[argc + 1] = new char[disablethreading.size() + 1];
+    strcpy(n_argv[argc + 1], disablethreading.c_str());
+    argc += 2;
+    argv = n_argv;
+  }
 
   if (!llvm::cl::ParseCommandLineOptions(argc, argv,
                                          "Multi device converter\n")) {

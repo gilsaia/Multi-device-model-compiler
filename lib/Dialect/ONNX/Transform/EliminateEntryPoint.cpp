@@ -3,11 +3,11 @@
 #include "src/Dialect/ONNX/ONNXDialect.hpp"
 #include "src/Dialect/ONNX/ONNXOps.hpp"
 
-#include "multi-device-model-compiler/Pass/ONNX/Passes.h"
+#include "multi-device-model-compiler/Dialect/ONNX/Transform/Passes.h"
 
 namespace multi_device {
 #define GEN_PASS_DEF_ELIMINATEENTRYPOINT
-#include "multi-device-model-compiler/Pass/ONNX/Passes.h.inc"
+#include "multi-device-model-compiler/Dialect/ONNX/Transform/Passes.h.inc"
 } // namespace multi_device
 
 using namespace mlir;

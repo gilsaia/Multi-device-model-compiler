@@ -1,4 +1,5 @@
-#include "multi-device-model-compiler/Pass/ONNX/Passes.h"
+#include "multi-device-model-compiler/Dialect/Device/Transform/Passes.h"
+#include "multi-device-model-compiler/Dialect/ONNX/Transform/Passes.h"
 #include "multi-device-model-compiler/Pipelines/ConvertPipelines.h"
 
 #include "mlir/Conversion/AffineToStandard/AffineToStandard.h"
@@ -26,6 +27,10 @@
 #include "mlir/Transforms/Passes.h"
 
 void multi_device::pipelines::createMLIRToCPUPipeline(mlir::OpPassManager &pm) {
+  device::AddDeviceTypeToFuncOptions deviceOptions;
+  deviceOptions.deviceType = device::DeviceType::CPU;
+  pm.addPass(
+      multi_device::device::createAddDeviceTypeToFuncPass(deviceOptions));
   pm.addPass(mlir::tosa::createTosaInferShapesPass());
   pm.addPass(mlir::tosa::createTosaLayerwiseConstantFoldPass());
   pm.addPass(mlir::tosa::createTosaMakeBroadcastablePass());

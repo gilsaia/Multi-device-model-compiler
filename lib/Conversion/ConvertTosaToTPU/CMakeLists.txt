@@ -1,0 +1,6 @@
+add_library(ConvertTosaToTPU STATIC ConvertTosaToTPU.cpp
+Math/ElementWise.cpp)
+target_link_libraries(ConvertTosaToTPU PUBLIC
+MLIRTosaDialect MLIRTransforms MLIRIR MLIRFuncDialect
+TPUMLIRTpu TPUMLIRTop TPUMLIRSupport
+)

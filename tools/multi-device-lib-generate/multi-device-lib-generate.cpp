@@ -1,6 +1,17 @@
 #include "multi-device-model-compiler/Utils/CommandUtils.h"
 #include "multi-device-model-compiler/Utils/CompileOptions.h"
 
+#include "tpu_mlir/Dialect/Top/IR/TopOps.h"
+#include "tpu_mlir/Dialect/Top/Transforms/Passes.h"
+#include "tpu_mlir/Dialect/Tpu/IR/TpuOps.h"
+#include "tpu_mlir/Dialect/Tpu/Transforms/Passes.h"
+
+#include "mlir/Dialect/Func/IR/FuncOps.h"
+#include "mlir/IR/AsmState.h"
+#include "mlir/IR/BuiltinOps.h"
+#include "mlir/IR/MLIRContext.h"
+#include "mlir/Parser/Parser.h"
+#include "mlir/Pass/PassManager.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/FileUtilities.h"
 #include "llvm/Support/InitLLVM.h"
@@ -18,6 +29,55 @@ static llvm::cl::opt<std::string>
                    llvm::cl::cat(multi_device::MultiDeviceLibGenOptions));
 
 using namespace multi_device;
+
+int cpuLibGen(std::string &inputFileWithoutExt) {
+  int rc;
+  std::string optFileWithExt = inputFileWithoutExt + "_opt.ll";
+  rc = OptLLVMIR(inputFileWithExt, optFileWithExt);
+  if (rc) {
+    llvm::errs() << "Opt LLVM IR wrong.\n";
+    return rc;
+  }
+  llvm::FileRemover optRemover(optFileWithExt, !preserveOptIR);
+
+  std::string objectFileWithExt = inputFileWithoutExt + ".o";
+  rc = GenObjectFromLLVMIR(optFileWithExt, objectFileWithExt);
+  if (rc) {
+    llvm::errs() << "Gen object file wrong.\n";
+    return rc;
+  }
+  llvm::FileRemover objectRemover(objectFileWithExt, !preserveObject);
+
+  std::string outputFileWithExt = outputFileName + getLibraryExt();
+  rc = GenLibraryFromObject(objectFileWithExt, outputFileWithExt);
+  if (rc) {
+    llvm::errs() << "Gen library wrong.\n";
+    return rc;
+  }
+  return 0;
+}
+
+int tpuLibGen() {
+  mlir::DialectRegistry registry;
+  registry.insert<mlir::func::FuncDialect>();
+  registry.insert<tpu::TpuDialect>();
+  registry.insert<top::TopDialect>();
+  mlir::MLIRContext ctx(registry, mlir::MLIRContext::Threading::DISABLED);
+  mlir::ParserConfig config(&ctx);
+  auto module = mlir::parseSourceFile<mlir::ModuleOp>(inputFileWithExt, config);
+  mlir::PassManager pm(module.get()->getName(),
+                       mlir::PassManager::Nesting::Implicit);
+  std::string outputFileWithExt = outputFileName + getLibraryExt();
+  tpu::CodegenOptions option;
+  option.model_file = outputFileWithExt;
+  pm.addPass(top::createInitPass());
+  pm.addPass(tpu::createCodegenPass(option));
+  pm.addPass(top::createDeinitPass());
+  if (mlir::failed(pm.run(module.get()))) {
+    return 1;
+  }
+  return 0;
+}
 
 int main(int argc, char **argv) {
   llvm::InitLLVM y(argc, argv);
@@ -45,28 +105,14 @@ int main(int argc, char **argv) {
         inputFileWithExt.substr(0, inputFileWithExt.find_last_of("."));
   }
 
-  int rc;
-  std::string optFileWithExt = inputFileWithoutExt + "_opt.ll";
-  rc = OptLLVMIR(inputFileWithExt, optFileWithExt);
-  if (rc) {
-    llvm::errs() << "Opt LLVM IR wrong.\n";
-    return rc;
-  }
-  llvm::FileRemover optRemover(optFileWithExt, !preserveOptIR);
-
-  std::string objectFileWithExt = inputFileWithoutExt + ".o";
-  rc = GenObjectFromLLVMIR(optFileWithExt, objectFileWithExt);
-  if (rc) {
-    llvm::errs() << "Gen object file wrong.\n";
-    return rc;
-  }
-  llvm::FileRemover objectRemover(objectFileWithExt, !preserveObject);
-
-  std::string outputFileWithExt = outputFileName + getLibraryExt();
-  rc = GenLibraryFromObject(objectFileWithExt, outputFileWithExt);
-  if (rc) {
-    llvm::errs() << "Gen library wrong.\n";
-    return rc;
+  switch (Device) {
+  case multi_device::TargetDevice::CPU:
+    return cpuLibGen(inputFileWithoutExt);
+  case multi_device::TargetDevice::TPU:
+    return tpuLibGen();
+  case multi_device::TargetDevice::GPU:
+  default:
+    llvm_unreachable("Not Implement Device.");
   }
 
   return 0;

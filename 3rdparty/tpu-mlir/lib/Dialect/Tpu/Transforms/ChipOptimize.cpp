@@ -15,11 +15,14 @@ using namespace llvm;
 namespace tpu_mlir {
 namespace tpu {
 
+#define GEN_PASS_DEF_CHIPOPTIMIZE
+#include "tpu_mlir/Dialect/Tpu/Transforms/Passes.h.inc"
+
 extern void populateOptimizeBM1684Patterns(RewritePatternSet *patterns);
 extern void populateOptimizeBM1684XPatterns(RewritePatternSet *patterns);
 extern void populateOptimizeCV18XXPatterns(RewritePatternSet *patterns);
 
-class ChipOptimizePass : public ChipOptimizeBase<ChipOptimizePass> {
+class ChipOptimizePass : public impl::ChipOptimizeBase<ChipOptimizePass> {
 public:
   ChipOptimizePass() {}
   void runOnOperation() override {
