@@ -23,6 +23,8 @@ void populateTosaToTPUConversionPattern(ConversionTarget &target,
                                         MLIRContext &ctx) {
   conversion::populateTosaElementWiseToTPUConversionPattern(target, patterns,
                                                             TypeConverter, ctx);
+  conversion::populateTosaTensorToTPUConversionPattern(target, patterns,
+                                                       TypeConverter, ctx);
 }
 
 struct TosaLoweringToTPUPass
@@ -108,12 +110,34 @@ void TosaLoweringToTPUPass::saveWeights(func::FuncOp func) {
   auto weight_file =
       module->getAttr("module.weight_file").dyn_cast<StringAttr>();
   TensorFile file(weight_file.getValue(), false, true);
+  func.walk([&](tosa::ConstOp op) {
+    auto elements = op.getValue();
+    if (!elements.isa<DenseIntOrFPElementsAttr>()) {
+      llvm_unreachable("Don't has a right weight type.");
+    }
+    DenseIntOrFPElementsAttr dataAttr =
+        elements.cast<DenseIntOrFPElementsAttr>();
+    llvm::StringRef weightname =
+        op.getLoc().cast<NameLoc>().getName().getValue();
+    auto tensorType = op.getType().cast<RankedTensorType>();
+    auto elementType = tensorType.getElementType();
+    if (elementType.isF32()) {
+      const float *dataPtr =
+          reinterpret_cast<const float *>(dataAttr.getRawData().data());
+      if (failed(file.addTensor<float>(weightname, dataPtr, tensorType))) {
+        llvm_unreachable("File can't add tensor becouse of name used.");
+      }
+    } else {
+      llvm_unreachable("other type not implemented");
+    }
+  });
   file.save();
 }
 
 void TosaLoweringToTPUPass::runOnOperation() {
   addElementName(getOperation());
   replaceFuncInput(getOperation());
+  saveWeights(getOperation());
   MLIRContext &context = getContext();
   RewritePatternSet patterns(&context);
   ConversionTarget target(context);
