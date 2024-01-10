@@ -1435,7 +1435,7 @@ static std::string genWeightFileName(bool &same_name) {
   auto chip = stringifyChip(chip_);
   auto old_name = m->getAttrOfType<StringAttr>(Attr::WEIGHT_FILE).getValue();
   name = old_name.substr(0, old_name.find_last_of('.'));
-  std::string file_name = name.lower() + std::string("_") +
+  std::string file_name = name.str() + std::string("_") +
                           stringifyState(state).lower() + std::string("_") +
                           chip.lower();
   if (!isChip(Chip::ALL)) {
