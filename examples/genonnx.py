@@ -33,6 +33,19 @@ def gen_add_constant_op(dir):
     onnx.save(onnx_model, dir + "add_constant.onnx")
 
 
+def gen_add_constant_splat_op(dir):
+    A = helper.make_tensor_value_info("A", TensorProto.FLOAT, [2, 10, 10])
+    val = np.ones((2, 10, 10)).astype(np.float32)
+    B = numpy_helper.from_array(val, name="B")
+    C = helper.make_tensor_value_info("C", TensorProto.FLOAT, [2, 10, 10])
+    add = helper.make_node("Add", ["A", "B"], ["C"])
+    graph = helper.make_graph([add], "Add Constant Splat Op", [A], [C], [B])
+
+    onnx_model = helper.make_model(graph)
+    checker.check_model(onnx_model)
+    onnx.save(onnx_model, dir + "add_constant_splat.onnx")
+
+
 def gen_gemm_op(dir):
     # val = np.random.randn(10, 20)
     # B = numpy_helper.from_array(val, name="B")
@@ -54,6 +67,7 @@ def gen_gemm_op(dir):
 def gen_onnx(dir, args):
     gen_add_op(dir)
     gen_add_constant_op(dir)
+    gen_add_constant_splat_op(dir)
     gen_gemm_op(dir)
 
 

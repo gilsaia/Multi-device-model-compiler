@@ -122,9 +122,17 @@ void TosaLoweringToTPUPass::saveWeights(func::FuncOp func) {
     auto tensorType = op.getType().cast<RankedTensorType>();
     auto elementType = tensorType.getElementType();
     if (elementType.isF32()) {
-      const float *dataPtr =
-          reinterpret_cast<const float *>(dataAttr.getRawData().data());
-      if (failed(file.addTensor<float>(weightname, dataPtr, tensorType))) {
+      LogicalResult res = success();
+      if (dataAttr.isSplat()) {
+        float val = dataAttr.getValues<float>()[0];
+        std::vector<float> vals(dataAttr.getNumElements(), val);
+        res = file.addTensor<float>(weightname, &vals, tensorType);
+      } else {
+        const float *dataPtr =
+            reinterpret_cast<const float *>(dataAttr.getRawData().data());
+        res = file.addTensor<float>(weightname, dataPtr, tensorType);
+      }
+      if (failed(res)) {
         llvm_unreachable("File can't add tensor becouse of name used.");
       }
     } else {
