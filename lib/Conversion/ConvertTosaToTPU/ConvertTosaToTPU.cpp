@@ -64,10 +64,10 @@ void TosaLoweringToTPUPass::replaceFuncInput(func::FuncOp func) {
   for (BlockArgument &arg : func.getArguments()) {
     Location loc = builder.getInsertionPoint()->getLoc();
     std::vector<NamedAttribute> attrs;
-    attrs.emplace_back(builder.getStringAttr("channel_format"),
-                       builder.getStringAttr("nchw"));
-    attrs.emplace_back(builder.getStringAttr("pixel_format"),
-                       builder.getStringAttr("bgr"));
+    attrs.emplace_back(
+        builder.getNamedAttr("channel_format", builder.getStringAttr("nchw")));
+    attrs.emplace_back(
+        builder.getNamedAttr("pixel_format", builder.getStringAttr("bgr")));
     auto topInput =
         builder.create<top::InputOp>(loc, arg.getType(), arg, attrs);
     topInput->setLoc(NameLoc::get(que.front()));
