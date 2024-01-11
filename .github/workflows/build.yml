@@ -72,9 +72,7 @@ jobs:
             - name: Build
               run: cmake --build ${{ github.workspace }}/build --config ${{ matrix.build_type }}
             - name: Test
-              run: |
-                source utils/tpu-env-setup.sh
-                cmake --build ${{ github.workspace }}/build --config ${{ matrix.build_type }} --target check-multi-device
+              run: cmake --build ${{ github.workspace }}/build --config ${{ matrix.build_type }} --target check-multi-device
             - name: Save CCache
               id: save-ccache
               if: ${{ matrix.build_type == 'Release' }}
