@@ -18,12 +18,13 @@ public:
   matchAndRewrite(tosa::AddOp op, OpAdaptor adaptor,
                   ConversionPatternRewriter &rewriter) const override {
     ValueRange inputs{adaptor.getInput1(), adaptor.getInput2()};
+    TypeRange outputs{op.getType()};
     std::vector<NamedAttribute> attrs;
     attrs.emplace_back(rewriter.getStringAttr("do_relu"),
                        rewriter.getBoolAttr(false));
     attrs.emplace_back(rewriter.getStringAttr("relu_limit"),
                        rewriter.getF64FloatAttr(-1));
-    rewriter.replaceOpWithNewOp<tpu::AddOp>(op, op.getType(), inputs, attrs);
+    rewriter.replaceOpWithNewOp<tpu::AddOp>(op, outputs, inputs, attrs);
 
     return success();
   }
