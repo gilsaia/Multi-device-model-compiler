@@ -45,3 +45,9 @@ examples/*.ll
 examples/*.bc
 examples/*.bmodel
 examples/*.json
+examples/*.npz
+
+test/**/*.npz
+
+# tpu-mlir lib
+!3rdparty/tpu-mlir/third_party/**/lib/*.so

@@ -23,6 +23,8 @@ void populateTosaToTPUConversionPattern(ConversionTarget &target,
                                         MLIRContext &ctx) {
   conversion::populateTosaElementWiseToTPUConversionPattern(target, patterns,
                                                             TypeConverter, ctx);
+  conversion::populateTosaTensorToTPUConversionPattern(target, patterns,
+                                                       TypeConverter, ctx);
 }
 
 struct TosaLoweringToTPUPass
@@ -62,10 +64,10 @@ void TosaLoweringToTPUPass::replaceFuncInput(func::FuncOp func) {
   for (BlockArgument &arg : func.getArguments()) {
     Location loc = builder.getInsertionPoint()->getLoc();
     std::vector<NamedAttribute> attrs;
-    attrs.emplace_back(builder.getStringAttr("channel_format"),
-                       builder.getStringAttr("nchw"));
-    attrs.emplace_back(builder.getStringAttr("pixel_format"),
-                       builder.getStringAttr("bgr"));
+    attrs.emplace_back(
+        builder.getNamedAttr("channel_format", builder.getStringAttr("nchw")));
+    attrs.emplace_back(
+        builder.getNamedAttr("pixel_format", builder.getStringAttr("bgr")));
     auto topInput =
         builder.create<top::InputOp>(loc, arg.getType(), arg, attrs);
     topInput->setLoc(NameLoc::get(que.front()));
@@ -108,12 +110,42 @@ void TosaLoweringToTPUPass::saveWeights(func::FuncOp func) {
   auto weight_file =
       module->getAttr("module.weight_file").dyn_cast<StringAttr>();
   TensorFile file(weight_file.getValue(), false, true);
+  func.walk([&](tosa::ConstOp op) {
+    auto elements = op.getValue();
+    if (!elements.isa<DenseIntOrFPElementsAttr>()) {
+      llvm_unreachable("Don't has a right weight type.");
+    }
+    DenseIntOrFPElementsAttr dataAttr =
+        elements.cast<DenseIntOrFPElementsAttr>();
+    llvm::StringRef weightname =
+        op.getLoc().cast<NameLoc>().getName().getValue();
+    auto tensorType = op.getType().cast<RankedTensorType>();
+    auto elementType = tensorType.getElementType();
+    if (elementType.isF32()) {
+      LogicalResult res = success();
+      if (dataAttr.isSplat()) {
+        float val = dataAttr.getValues<float>()[0];
+        std::vector<float> vals(dataAttr.getNumElements(), val);
+        res = file.addTensor<float>(weightname, &vals, tensorType);
+      } else {
+        const float *dataPtr =
+            reinterpret_cast<const float *>(dataAttr.getRawData().data());
+        res = file.addTensor<float>(weightname, dataPtr, tensorType);
+      }
+      if (failed(res)) {
+        llvm_unreachable("File can't add tensor becouse of name used.");
+      }
+    } else {
+      llvm_unreachable("other type not implemented");
+    }
+  });
   file.save();
 }
 
 void TosaLoweringToTPUPass::runOnOperation() {
   addElementName(getOperation());
   replaceFuncInput(getOperation());
+  saveWeights(getOperation());
   MLIRContext &context = getContext();
   RewritePatternSet patterns(&context);
   ConversionTarget target(context);

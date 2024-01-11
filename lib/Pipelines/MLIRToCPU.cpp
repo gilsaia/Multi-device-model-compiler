@@ -49,6 +49,7 @@ void multi_device::pipelines::createMLIRToCPUPipeline(mlir::OpPassManager &pm) {
   pm.addPass(mlir::bufferization::createEmptyTensorToAllocTensorPass());
   pm.addPass(mlir::createLinalgBufferizePass());
   pm.addPass(mlir::tensor::createTensorBufferizePass());
+  pm.addPass(mlir::arith::createArithBufferizePass());
   pm.addPass(mlir::func::createFuncBufferizePass());
   pm.addPass(mlir::createCanonicalizerPass());
   pm.addPass(mlir::createCSEPass());

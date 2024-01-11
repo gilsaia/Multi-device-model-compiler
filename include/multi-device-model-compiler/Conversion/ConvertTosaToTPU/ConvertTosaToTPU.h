@@ -12,7 +12,10 @@ namespace conversion {
 void populateTosaElementWiseToTPUConversionPattern(
     mlir::ConversionTarget &target, mlir::RewritePatternSet &patterns,
     mlir::TypeConverter &TypeConverter, mlir::MLIRContext &ctx);
-}
+void populateTosaTensorToTPUConversionPattern(
+    mlir::ConversionTarget &target, mlir::RewritePatternSet &patterns,
+    mlir::TypeConverter &TypeConverter, mlir::MLIRContext &ctx);
+} // namespace conversion
 } // namespace multi_device
 
 #endif
