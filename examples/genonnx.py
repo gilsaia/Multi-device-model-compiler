@@ -21,10 +21,10 @@ def gen_add_op(dir):
 
 
 def gen_add_constant_op(dir):
-    A = helper.make_tensor_value_info("A", TensorProto.FLOAT, [2, 10, 10])
-    val = np.random.random((2, 10, 10)).astype(np.float32)
+    A = helper.make_tensor_value_info("A", TensorProto.FLOAT, [3, 32, 32])
+    val = np.random.random((3, 32, 32)).astype(np.float32)
     B = numpy_helper.from_array(val, name="B")
-    C = helper.make_tensor_value_info("C", TensorProto.FLOAT, [2, 10, 10])
+    C = helper.make_tensor_value_info("C", TensorProto.FLOAT, [3, 32, 32])
     add = helper.make_node("Add", ["A", "B"], ["C"])
     graph = helper.make_graph([add], "Add Constant Op", [A], [C], [B])
 
@@ -34,10 +34,10 @@ def gen_add_constant_op(dir):
 
 
 def gen_add_constant_splat_op(dir):
-    A = helper.make_tensor_value_info("A", TensorProto.FLOAT, [2, 10, 10])
-    val = np.ones((2, 10, 10)).astype(np.float32)
+    A = helper.make_tensor_value_info("A", TensorProto.FLOAT, [3, 32, 32])
+    val = np.ones((3, 32, 32)).astype(np.float32)
     B = numpy_helper.from_array(val, name="B")
-    C = helper.make_tensor_value_info("C", TensorProto.FLOAT, [2, 10, 10])
+    C = helper.make_tensor_value_info("C", TensorProto.FLOAT, [3, 32, 32])
     add = helper.make_node("Add", ["A", "B"], ["C"])
     graph = helper.make_graph([add], "Add Constant Splat Op", [A], [C], [B])
 

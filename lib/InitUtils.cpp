@@ -73,6 +73,9 @@ void multi_device::initConvertPassPipelines() {
   mlir::PassPipelineRegistration<>(
       "mlir-to-tpu", "Pipeline lowering TOSA to TPU code",
       multi_device::pipelines::createMLIRToTPUPipeline);
+  mlir::PassPipelineRegistration<>(
+      "mlir-to-gpu", "Pipeline lowering TOSA to GPU code",
+      multi_device::pipelines::createMLIRToGPUPipeline);
 }
 
 void multi_device::initMultiDevicePasses() {
