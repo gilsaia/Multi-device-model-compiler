@@ -23,6 +23,7 @@
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/ToolOutputFile.h"
 
+#include "src/Compiler/CompilerOptions.hpp"
 #include "src/Dialect/ONNX/ONNXDialect.hpp"
 #include "src/Pass/Passes.hpp"
 
@@ -30,6 +31,7 @@
 
 #include "multi-device-model-compiler/Dialect/Device/IR/Device.h"
 #include "multi-device-model-compiler/InitUtils.h"
+#include "multi-device-model-compiler/Utils/CompileUtils.h"
 
 static llvm::cl::OptionCategory
     MultiDeviceOptOptions("Multi Device OPT Options",
@@ -40,7 +42,7 @@ static llvm::cl::opt<std::string>
                    llvm::cl::init("-"), llvm::cl::cat(MultiDeviceOptOptions));
 
 static llvm::cl::opt<std::string>
-    output_filename("o", llvm::cl::desc("Output filename"),
+    output_filename("out", llvm::cl::desc("Output filename"),
                     llvm::cl::value_desc("filename"), llvm::cl::init("-"),
                     llvm::cl::cat(MultiDeviceOptOptions));
 
@@ -65,7 +67,7 @@ int main(int argc, char **argv) {
   registry.insert<mlir::linalg::LinalgDialect>();
   registry.insert<mlir::func::FuncDialect>();
   registry.insert<mlir::arith::ArithDialect>();
-  registry.insert<mlir::AffineDialect>();
+  registry.insert<mlir::affine::AffineDialect>();
   registry.insert<mlir::tensor::TensorDialect>();
   registry.insert<mlir::vector::VectorDialect>();
   registry.insert<mlir::ONNXDialect>();
@@ -81,6 +83,7 @@ int main(int argc, char **argv) {
   multi_device::initMultiDevicePasses();
 
   llvm::cl::HideUnrelatedOptions({&MultiDeviceOptOptions});
+  multi_device::removeUnrelatedOptions({&MultiDeviceOptOptions});
 
   mlir::registerAsmPrinterCLOptions();
   mlir::registerMLIRContextCLOptions();
@@ -125,7 +128,6 @@ int main(int argc, char **argv) {
   }
 
   auto config = mlir::MlirOptMainConfig::createFromCLOptions();
-  // config = config.preloadDialectsInContext(true);
 
   if (failed(
           mlir::MlirOptMain(output->os(), std::move(file), registry, config))) {

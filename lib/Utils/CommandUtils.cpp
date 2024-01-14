@@ -4,6 +4,7 @@
 #include "ExternalUtil.h"
 
 #include "llvm/ADT/SmallString.h"
+#include "llvm/ADT/StringExtras.h"
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/Program.h"
 
@@ -17,7 +18,7 @@ Command &Command::appendStr(const std::string &arg) {
 }
 
 // Append a single optional string argument.
-Command &Command::appendStrOpt(const llvm::Optional<std::string> &arg) {
+Command &Command::appendStrOpt(const std::optional<std::string> &arg) {
   if (arg.has_value())
     _args.emplace_back(arg.value());
   return *this;

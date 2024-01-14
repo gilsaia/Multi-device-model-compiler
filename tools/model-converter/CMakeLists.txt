@@ -1,3 +1,4 @@
 add_llvm_executable(model-converter model-converter.cpp)
 
-target_link_libraries(model-converter PRIVATE MLIROptLib OMBuilder OMCompilerUtils)
+target_link_libraries(model-converter PUBLIC
+MLIROptLib OMBuilder OMCompilerUtils MultiDeviceCompileUtils)

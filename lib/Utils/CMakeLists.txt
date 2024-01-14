@@ -1,4 +1,4 @@
-add_library(MultiDeviceCompileUtils STATIC CommandUtils.cpp CompileOptions.cpp)
+add_library(MultiDeviceCompileUtils STATIC CommandUtils.cpp CompileOptions.cpp CompileUtils.cpp)
 
 target_include_directories(MultiDeviceCompileUtils PRIVATE
 ${MultiDeviceConfigDir})

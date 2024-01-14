@@ -1190,9 +1190,9 @@ public:
       auto crop_op = rewriter.create<top::SliceOp>(
           loc, op.getOutput().getType().cast<RankedTensorType>(), operands,
           attrs);
-      rewriter.replaceOp(op, {crop_op});
+      rewriter.replaceOp(op, crop_op);
     } else {
-      rewriter.replaceOp(op, {mul_op});
+      rewriter.replaceOp(op, mul_op);
     }
     return success();
   }
@@ -1282,7 +1282,7 @@ public:
     permuteType = RankedTensorType::get(shape, outEltType);
     permuteOp =
         rewriter.create<top::PermuteOp>(name1, permuteType, operands, attrs);
-    rewriter.replaceOp(op, {permuteOp});
+    rewriter.replaceOp(op, permuteOp);
     return success();
   }
 };

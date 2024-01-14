@@ -1,5 +1,6 @@
 #include "multi-device-model-compiler/Utils/CommandUtils.h"
 #include "multi-device-model-compiler/Utils/CompileOptions.h"
+#include "multi-device-model-compiler/Utils/CompileUtils.h"
 
 #include "tpu_mlir/Dialect/Top/IR/TopOps.h"
 #include "tpu_mlir/Dialect/Top/Transforms/Passes.h"
@@ -82,6 +83,8 @@ int tpuLibGen() {
 int main(int argc, char **argv) {
   llvm::InitLLVM y(argc, argv);
   llvm::cl::HideUnrelatedOptions(
+      {&MultiDeviceCompileOptions, &MultiDeviceLibGenOptions});
+  multi_device::removeUnrelatedOptions(
       {&MultiDeviceCompileOptions, &MultiDeviceLibGenOptions});
 
   if (!llvm::cl::ParseCommandLineOptions(argc, argv,

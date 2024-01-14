@@ -9,7 +9,6 @@
 
 #include "tpu_mlir/Support/MathUtils.h"
 
-
 using namespace tpu_mlir::tpu;
 
 //===----------------------------------------------------------------------===//
@@ -93,7 +92,6 @@ RunMode getRunMode(Operation *op) {
 }
 
 void IfOp::getSuccessorRegions(std::optional<unsigned> index,
-                               ArrayRef<Attribute> operands,
                                SmallVectorImpl<RegionSuccessor> &regions) {
   // The `then` and the `else` region branch back to the parent operation.
   if (index) {
@@ -101,31 +99,40 @@ void IfOp::getSuccessorRegions(std::optional<unsigned> index,
     return;
   }
 
+  // auto operand = this->getOperand();
+
   // Don't consider the else region if it is empty.
   Region *elseRegion = &this->getElseBranch();
   if (elseRegion->empty())
     elseRegion = nullptr;
 
-  // Otherwise, the successor is dependent on the condition.
-  bool condition;
-  if (auto condAttr = operands.front().dyn_cast_or_null<IntegerAttr>()) {
-    condition = condAttr.getValue().isOne();
-  } else {
-    // If the condition isn't constant, both regions may be executed.
-    regions.push_back(RegionSuccessor(&getThenBranch()));
-    // If the else region does not exist, it is not a viable successor.
-    if (elseRegion)
-      regions.push_back(RegionSuccessor(elseRegion));
-    return;
-  }
+  // If the condition isn't constant, both regions may be executed.
+  regions.push_back(RegionSuccessor(&getThenBranch()));
+  // If the else region does not exist, it is not a viable successor.
+  if (elseRegion)
+    regions.push_back(RegionSuccessor(elseRegion));
+  return;
 
-  // Add the successor regions using the condition.
-  regions.push_back(RegionSuccessor(condition ? &getThenBranch() : elseRegion));
+  // Otherwise, the successor is dependent on the condition.
+  // bool condition;
+  // if (auto condType = operand.getType().isa<IntegerType>()) {
+  //   condition = operand->.isOne();
+  // } else {
+  //   // If the condition isn't constant, both regions may be executed.
+  //   regions.push_back(RegionSuccessor(&getThenBranch()));
+  //   // If the else region does not exist, it is not a viable successor.
+  //   if (elseRegion)
+  //     regions.push_back(RegionSuccessor(elseRegion));
+  //   return;
+  // }
+
+  // // Add the successor regions using the condition.
+  // regions.push_back(RegionSuccessor(condition ? &getThenBranch() :
+  // elseRegion));
 }
 
 void LoopOp::getSuccessorRegions(std::optional<unsigned> index,
-                                ArrayRef<Attribute> operands,
-                                SmallVectorImpl<RegionSuccessor> &regions) {
+                                 SmallVectorImpl<RegionSuccessor> &regions) {
   // If the predecessor is the ForOp, branch into the body using the iterator
   // arguments.
   if (!index) {
