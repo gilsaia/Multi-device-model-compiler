@@ -1,6 +1,6 @@
 add_llvm_executable(multi-device-opt multi-device-opt.cpp)
 
-target_link_libraries(multi-device-opt PRIVATE
-MultiDeviceInitUtils MultiDeviceDeviceDialect
+target_link_libraries(multi-device-opt PUBLIC
+MultiDeviceInitUtils MultiDeviceDeviceDialect MultiDeviceCompileUtils
 OMONNXOps TPUMLIRTpu TPUMLIRTop
 MLIRTransforms MLIROptLib)

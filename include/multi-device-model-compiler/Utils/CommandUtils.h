@@ -18,7 +18,7 @@ struct Command {
         _args({llvm::sys::path::filename(_path).str()}) {}
 
   Command &appendStr(const std::string &arg);
-  Command &appendStrOpt(const llvm::Optional<std::string> &arg);
+  Command &appendStrOpt(const std::optional<std::string> &arg);
   Command &appendList(const std::vector<std::string> &args);
   Command &resetArgs();
   int exec(std::string wdir = "") const;

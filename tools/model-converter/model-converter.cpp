@@ -5,6 +5,8 @@
 #include "src/Builder/FrontendDialectTransformer.hpp"
 #include "src/Compiler/CompilerUtils.hpp"
 
+#include "multi-device-model-compiler/Utils/CompileUtils.h"
+
 llvm::cl::OptionCategory ModelConverterOptions("Converter Options", "");
 
 int main(int argc, char **argv) {
@@ -18,6 +20,7 @@ int main(int argc, char **argv) {
       llvm::cl::cat(ModelConverterOptions));
 
   llvm::cl::HideUnrelatedOptions({&ModelConverterOptions});
+  multi_device::removeUnrelatedOptions({&ModelConverterOptions});
 
   if (!llvm::cl::ParseCommandLineOptions(argc, argv,
                                          "Onnx model converter\n")) {
@@ -26,7 +29,7 @@ int main(int argc, char **argv) {
   }
 
   mlir::MLIRContext context;
-  onnx_mlir::registerDialects(context);
+  onnx_mlir::loadDialects(context);
 
   mlir::OwningOpRef<mlir::ModuleOp> module;
   std::string errorMessage;

@@ -36,7 +36,7 @@ jobs:
               with:
                 repository: protocolbuffers/protobuf
                 path: 'protobuf'
-                ref: 'v3.18.3'
+                ref: 'v3.20.3'
                 submodules: 'recursive'
             - name: Install Tools
               run: |
