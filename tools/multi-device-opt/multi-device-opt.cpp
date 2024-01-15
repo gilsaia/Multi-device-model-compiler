@@ -42,7 +42,7 @@ static llvm::cl::opt<std::string>
                    llvm::cl::init("-"), llvm::cl::cat(MultiDeviceOptOptions));
 
 static llvm::cl::opt<std::string>
-    output_filename("out", llvm::cl::desc("Output filename"),
+    output_filename("o", llvm::cl::desc("Output filename"),
                     llvm::cl::value_desc("filename"), llvm::cl::init("-"),
                     llvm::cl::cat(MultiDeviceOptOptions));
 
@@ -82,7 +82,6 @@ int main(int argc, char **argv) {
   multi_device::initConvertPassPipelines();
   multi_device::initMultiDevicePasses();
 
-  llvm::cl::HideUnrelatedOptions({&MultiDeviceOptOptions});
   multi_device::removeUnrelatedOptions({&MultiDeviceOptOptions});
 
   mlir::registerAsmPrinterCLOptions();
