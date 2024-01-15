@@ -7,6 +7,6 @@ add_subdirectory(Utils)
 
 add_library(MultiDeviceInitUtils STATIC InitUtils.cpp)
 target_link_libraries(MultiDeviceInitUtils PUBLIC OMONNXRewrite OMShapeInferencePass 
-OMInstrumentONNX OMOpTransform OMHybridTransform OMONNXSimplifyShapeRelatedOps OMONNXToTOSA
+OMInstrumentONNX OMHybridTransform OMONNXSimplifyShapeRelatedOps OMONNXToTOSA
 MultiDevicePipelines MultiDevicePasses MultiDeviceConvertPasses
 )

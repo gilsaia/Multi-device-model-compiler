@@ -44,17 +44,19 @@ void multi_device::pipelines::createMLIRToGPUPipeline(mlir::OpPassManager &pm) {
   pm.addPass(mlir::createCSEPass());
   pm.addPass(mlir::bufferization::createBufferDeallocationPass());
   pm.addPass(mlir::createConvertLinalgToAffineLoopsPass());
-  pm.addPass(mlir::createAffineExpandIndexOpsPass());
-  pm.addPass(mlir::createAffineLoopNormalizePass());
-  pm.addPass(mlir::createSimplifyAffineStructuresPass());
-  auto affineVecConfig = mlir::AffineVectorizeOptions();
+  pm.addPass(mlir::affine::createAffineExpandIndexOpsPass());
+  pm.addPass(mlir::affine::createAffineLoopNormalizePass());
+  pm.addPass(mlir::affine::createSimplifyAffineStructuresPass());
+  auto affineVecConfig = mlir::affine::AffineVectorizeOptions();
   std::vector<int64_t> vecSizes{32}, testFastestSizes{0};
   affineVecConfig.vectorSizes = vecSizes;
   affineVecConfig.fastestVaryingPattern = testFastestSizes;
-  pm.addPass(mlir::createAffineVectorize(affineVecConfig));
+  pm.addPass(mlir::affine::createAffineVectorize(affineVecConfig));
   pm.addNestedPass<mlir::func::FuncOp>(mlir::createAffineForToGPUPass());
   pm.addPass(mlir::createConvertVectorToGPUPass(true));
   pm.addPass(mlir::createGpuLauchSinkIndexComputationsPass());
   pm.addPass(mlir::createGpuKernelOutliningPass());
   pm.addPass(mlir::createGpuAsyncRegionPass());
+  pm.addPass(mlir::createCanonicalizerPass());
+  pm.addPass(mlir::createCSEPass());
 }

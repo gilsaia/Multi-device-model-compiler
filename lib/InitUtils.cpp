@@ -13,10 +13,6 @@ void multi_device::initONNXPasses() {
   });
 
   mlir::registerPass([]() -> std::unique_ptr<mlir::Pass> {
-    return onnx_mlir::createONNXOpTransformPass();
-  });
-
-  mlir::registerPass([]() -> std::unique_ptr<mlir::Pass> {
     return onnx_mlir::createDecomposeONNXToONNXPass();
   });
 
