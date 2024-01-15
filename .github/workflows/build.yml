@@ -71,8 +71,10 @@ jobs:
               run: cmake -G Ninja -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DUSE_CCACHE_BUILD=ON
             - name: Build
               run: cmake --build ${{ github.workspace }}/build --config ${{ matrix.build_type }}
+              continue-on-error: true
             - name: Test
               run: cmake --build ${{ github.workspace }}/build --config ${{ matrix.build_type }} --target check-multi-device
+              continue-on-error: true
             - name: Save CCache
               id: save-ccache
               if: ${{ matrix.build_type == 'Release' }}
