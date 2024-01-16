@@ -1,5 +1,6 @@
 #include "multi-device-model-compiler/InitUtils.h"
 #include "multi-device-model-compiler/Conversion/ConvertTosaToTPU/ConvertTosaToTPU.h"
+#include "multi-device-model-compiler/Conversion/Passes.h"
 #include "multi-device-model-compiler/Pass/InitPasses.h"
 #include "multi-device-model-compiler/Pipelines/ConvertPipelines.h"
 
