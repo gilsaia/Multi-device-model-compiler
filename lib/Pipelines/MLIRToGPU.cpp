@@ -137,6 +137,6 @@ void multi_device::pipelines::createMLIRToGPUPipeline(mlir::OpPassManager &pm) {
   pm.addPass(mlir::createReconcileUnrealizedCastsPass());
 
   auto gpuToBinaryConfig = mlir::GpuModuleToBinaryPassOptions();
-  gpuToBinaryConfig.compilationTarget = "offloading";
+  gpuToBinaryConfig.compilationTarget = "binary";
   pm.addPass(mlir::createGpuModuleToBinaryPass());
 }

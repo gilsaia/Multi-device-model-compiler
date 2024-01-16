@@ -46,6 +46,7 @@ examples/*.bc
 examples/*.bmodel
 examples/*.json
 examples/*.npz
+examples/*.ptx
 
 test/**/*.npz
 
