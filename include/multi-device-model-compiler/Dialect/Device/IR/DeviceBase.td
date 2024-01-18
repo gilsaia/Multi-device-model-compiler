@@ -3,6 +3,7 @@
 
 include "mlir/IR/DialectBase.td"
 include "mlir/IR/EnumAttr.td"
+include "mlir/IR/AttrTypeBase.td"
 
 def Device_Dialect: Dialect {
     let name="device";
@@ -10,7 +11,7 @@ def Device_Dialect: Dialect {
     let summary=[{
         The device dialect used to describe device attr used for optimize model.
     }];
-    // let useDefaultAttributePrinterParser = 1;
+    let useDefaultAttributePrinterParser = 1;
 }
 
 def DeviceType : I64EnumAttr<
@@ -23,5 +24,10 @@ def DeviceType : I64EnumAttr<
     ]> {
     let cppNamespace="::multi_device::device";
 } 
+
+class Device_Attr<string attrName,string attrMnemonic,list<Trait> traits=[]>
+    : AttrDef<Device_Dialect,attrName,traits>{
+        let mnemonic=attrMnemonic;
+}
 
 #endif // MULTI_DEVICE_MODEL_COMPILER_DIALECT_DEVICE_BASE_

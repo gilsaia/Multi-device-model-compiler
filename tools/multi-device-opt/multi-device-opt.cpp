@@ -1,6 +1,7 @@
 #include "mlir/Dialect/Affine/IR/AffineOps.h"
 #include "mlir/Dialect/Arith/IR/Arith.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
+#include "mlir/Dialect/LLVMIR/LLVMDialect.h"
 #include "mlir/Dialect/Linalg/IR/Linalg.h"
 #include "mlir/Dialect/Shape/IR/Shape.h"
 #include "mlir/Dialect/Tensor/IR/Tensor.h"
@@ -71,6 +72,7 @@ int main(int argc, char **argv) {
   registry.insert<mlir::tensor::TensorDialect>();
   registry.insert<mlir::vector::VectorDialect>();
   registry.insert<mlir::ONNXDialect>();
+  registry.insert<mlir::LLVM::LLVMDialect>();
   registry.insert<mlir::tosa::TosaDialect>();
   registry.insert<mlir::shape::ShapeDialect>();
   registry.insert<tpu::TpuDialect>();

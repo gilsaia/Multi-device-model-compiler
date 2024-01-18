@@ -26,6 +26,7 @@
 #include "mlir/Dialect/Arith/Transforms/Passes.h"
 #include "mlir/Dialect/Bufferization/Transforms/Passes.h"
 #include "mlir/Dialect/Func/Transforms/Passes.h"
+#include "mlir/Dialect/GPU/IR/CompilationInterfaces.h"
 #include "mlir/Dialect/GPU/Transforms/Passes.h"
 #include "mlir/Dialect/LLVMIR/Transforms/OptimizeForNVVM.h"
 #include "mlir/Dialect/LLVMIR/Transforms/Passes.h"
@@ -74,6 +75,8 @@ void multi_device::pipelines::createMLIRToGPUPipeline(mlir::OpPassManager &pm) {
   // affineVecConfig.vectorSizes = vecSizes;
   // affineVecConfig.fastestVaryingPattern = testFastestSizes;
   // pm.addPass(mlir::affine::createAffineVectorize(affineVecConfig));
+  // pm.addPass(mlir::affine::createAffineDataCopyGenerationPass(0, 0, 0));
+  pm.addPass(mlir::affine::createPipelineDataTransferPass());
   pm.addPass(mlir::affine::createAffineParallelizePass());
   pm.addPass(mlir::createLowerAffinePass());
   pm.addPass(mlir::createParallelLoopSpecializationPass());
@@ -89,8 +92,8 @@ void multi_device::pipelines::createMLIRToGPUPipeline(mlir::OpPassManager &pm) {
   pm.addPass(mlir::createCanonicalizerPass());
   pm.addPass(mlir::createCSEPass());
   mlir::GpuNVVMAttachTargetOptions attachOptions;
-  attachOptions.chip = "sm_75";
-  attachOptions.features = "+ptx78";
+  attachOptions.chip = "sm_70";
+  attachOptions.features = "+ptx75";
   pm.addPass(mlir::createGpuNVVMAttachTarget(attachOptions));
 
   pm.addPass(mlir::createConvertVectorToGPUPass(true));
@@ -136,7 +139,8 @@ void multi_device::pipelines::createMLIRToGPUPipeline(mlir::OpPassManager &pm) {
   pm.addPass(mlir::createCSEPass());
   pm.addPass(mlir::createReconcileUnrealizedCastsPass());
 
-  auto gpuToBinaryConfig = mlir::GpuModuleToBinaryPassOptions();
-  gpuToBinaryConfig.compilationTarget = "binary";
-  pm.addPass(mlir::createGpuModuleToBinaryPass());
+  auto offloadLLVMToGPUConfig =
+      multi_device::device::OffloadingLLVMToGPUOptions();
+  offloadLLVMToGPUConfig.compilationTarget = "llvm";
+  pm.addPass(device::createOffloadingLLVMToGPU(offloadLLVMToGPUConfig));
 }

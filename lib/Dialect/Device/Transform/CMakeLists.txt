@@ -1,6 +1,11 @@
-add_library(MultiDeviceDevicePass STATIC AddDeviceTypeToFunc.cpp)
+add_library(MultiDeviceDevicePass STATIC AddDeviceTypeToFunc.cpp OffloadingLLVMToGPU.cpp)
 
 add_dependencies(MultiDeviceDevicePass MultiDeviceDevicePassIncGen)
 
 target_link_libraries(MultiDeviceDevicePass PUBLIC 
-MultiDeviceDeviceDialect)
+MultiDeviceDeviceDialect
+MLIRBuiltinToLLVMIRTranslation
+MLIRGPUDialect
+MLIRIR
+MLIRLLVMDialect
+MLIRLLVMToLLVMIRTranslation)

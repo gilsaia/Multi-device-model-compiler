@@ -1,5 +1,5 @@
 add_library(MultiDeviceDeviceDialect STATIC 
-DeviceDialect.cpp)
+DeviceDialect.cpp GPUOffloadingAttr.cpp)
 add_dependencies(MultiDeviceDeviceDialect MLIRDeviceOpsIncGen)
 target_link_libraries(MultiDeviceDeviceDialect PUBLIC
 MLIRDialect MLIRIR)

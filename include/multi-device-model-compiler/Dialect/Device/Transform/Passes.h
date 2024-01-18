@@ -2,6 +2,7 @@
 #define MULTI_DEVICE_MODEL_COMPILER_DIALECT_DEVICE_TRANSFORM_PASSES_H_
 
 #include "mlir/Dialect/Func/IR/FuncOps.h"
+#include "mlir/Dialect/GPU/IR/GPUDialect.h"
 #include "mlir/IR/BuiltinOps.h"
 #include "mlir/Pass/Pass.h"
 

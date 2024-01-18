@@ -1,3 +1,4 @@
+#include "mlir/Dialect/GPU/IR/CompilationInterfaces.h"
 #include "mlir/IR/Builders.h"
 #include "mlir/IR/DialectImplementation.h"
 #include "llvm/ADT/StringRef.h"
@@ -9,8 +10,6 @@ using namespace multi_device;
 using namespace multi_device::device;
 
 #include "multi-device-model-compiler/Dialect/Device/IR/DeviceOpsDialect.cpp.inc"
-#define GET_ATTRDEF_CLASSES
-#include "multi-device-model-compiler/Dialect/Device/IR/DeviceOpsAttributes.cpp.inc"
 
 void device::DeviceDialect::initialize() {
   addOperations<
@@ -24,3 +23,7 @@ void device::DeviceDialect::initialize() {
 }
 
 #include "multi-device-model-compiler/Dialect/Device/IR/DeviceOpsEnums.cpp.inc"
+
+using namespace mlir;
+#define GET_ATTRDEF_CLASSES
+#include "multi-device-model-compiler/Dialect/Device/IR/DeviceOpsAttributes.cpp.inc"
