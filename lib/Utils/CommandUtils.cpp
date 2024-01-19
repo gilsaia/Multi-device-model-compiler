@@ -119,4 +119,12 @@ int GenLibraryFromObject(std::string inputNameWithExt,
                .exec();
   return rc;
 }
+
+int GenLLFromBC(std::string inputNameWithExt, std::string LLNameWithExt) {
+  Command disCommand(kDisPath);
+  int rc = disCommand.appendStr(inputNameWithExt)
+               .appendList({"-o", LLNameWithExt})
+               .exec();
+  return rc;
+}
 } // namespace multi_device

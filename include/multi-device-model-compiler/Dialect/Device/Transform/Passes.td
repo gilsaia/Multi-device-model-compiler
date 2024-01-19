@@ -35,6 +35,7 @@ def OffloadingLLVMToGPU: Pass<"offload-gpu-module",""> {
            "Extra files to link to.">,
     Option<"cmdOptions", "opts", "std::string", [{""}],
            "Command line options to pass to the tools.">,
+    Option<"kernelName","name","std::string",[{"ops"}],"Kernel name to generate.">,
     Option<"compilationTarget", "format", "std::string", [{"bin"}],
            "The target representation of the compilation process.">
     ];

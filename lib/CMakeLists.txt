@@ -10,3 +10,9 @@ target_link_libraries(MultiDeviceInitUtils PUBLIC OMONNXRewrite OMShapeInference
 OMInstrumentONNX OMHybridTransform OMONNXSimplifyShapeRelatedOps OMONNXToTOSA
 MultiDevicePipelines MultiDevicePasses MultiDeviceConvertPasses
 )
+
+add_library(MultiDeviceInitTranslations STATIC InitTranslations.cpp)
+target_link_libraries(MultiDeviceInitTranslations PUBLIC
+MLIRToLLVMIRTranslationRegistration
+MultiDeviceDeviceDialect
+)

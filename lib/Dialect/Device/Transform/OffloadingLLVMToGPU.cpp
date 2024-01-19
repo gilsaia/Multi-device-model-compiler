@@ -54,7 +54,8 @@ void OffloadingLLVMToGPUPass::runOnOperation() {
       static_cast<gpu::TargetOptions::CompilationTarget>(targetFormat));
   if (failed(gpu::transformGpuModulesToBinaries(
           getOperation(),
-          multi_device::device::GPUOffloadingAttr::get(&getContext(), nullptr),
+          multi_device::device::GPUOffloadingAttr::get(&getContext(),
+                                                       kernelName, nullptr),
           targetOptions)))
     return signalPassFailure();
 }

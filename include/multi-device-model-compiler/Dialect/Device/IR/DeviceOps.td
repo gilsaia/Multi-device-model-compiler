@@ -15,10 +15,11 @@ def Device_GPUOffloadingAttr : Device_Attr<"GPUOffloading","gpu_offloading",[
         Device GPU Offloading handler,will output the ptx code,generate right kernel call.
     }];
     let parameters = (ins
-        OptionalParameter<"Attribute","Target to select for output.">:$target
+        StringRefParameter<"Kernel name">:$kernel,
+        OptionalParameter<"Attribute", "Target to select for embedding.">:$target
     );
     let assemblyFormat=[{
-        (`<` $target^ `>`)?
+        $kernel (`<` $target^ `>`)?
     }];
     let genVerifyDecl = 1;
 }

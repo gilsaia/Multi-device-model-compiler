@@ -112,6 +112,13 @@ extern "C" MLIR_CUDA_WRAPPERS_EXPORT CUmodule mgpuModuleLoad(void *data) {
   return module;
 }
 
+extern "C" MLIR_CUDA_WRAPPERS_EXPORT CUmodule mgpuModuleFileLoad() {
+  ScopedContext ScopedContext;
+  CUmodule module = nullptr;
+  CUDA_REPORT_IF_ERROR(cuModuleLoad(&module, "./ops.cubin"));
+  return module;
+}
+
 extern "C" MLIR_CUDA_WRAPPERS_EXPORT void mgpuModuleUnload(CUmodule module) {
   CUDA_REPORT_IF_ERROR(cuModuleUnload(module));
 }

@@ -29,6 +29,7 @@ int GenObjectFromLLVMIR(std::string inputNameWithExt,
                         std::string ObjectNameWithExt);
 int GenLibraryFromObject(std::string inputNameWithExt,
                          std::string LibraryNameWithExt);
+int GenLLFromBC(std::string inputNameWithExt, std::string LLNameWithExt);
 
 } // namespace multi_device
 

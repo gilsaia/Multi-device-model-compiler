@@ -81,6 +81,7 @@ endif()
 if(USE_CUDA_SUPPORT)
     enable_language(CUDA)
     find_package(CUDAToolkit REQUIRED)
+    add_compile_definitions(MULTI_DEVICE_CUDA_ENABLE)
 endif()
 #---------------------------------------------------------------
 

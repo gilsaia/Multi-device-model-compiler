@@ -1,4 +1,5 @@
 add_llvm_executable(multi-device-translate multi-device-translate.cpp)
 
 target_link_libraries(multi-device-translate PUBLIC
-MLIRTranslateLib MLIRTargetCpp MLIRTargetLLVMIRExport MLIRToLLVMIRTranslationRegistration)
+MLIRIR MLIRParser MLIRPass MLIRSupport MLIRTargetCpp MLIRTargetLLVMIRExport MLIRToLLVMIRTranslationRegistration
+MultiDeviceInitTranslations MultiDeviceCompileUtils MultiDeviceDeviceDialect)
