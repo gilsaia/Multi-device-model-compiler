@@ -30,6 +30,11 @@ int GenObjectFromLLVMIR(std::string inputNameWithExt,
 int GenLibraryFromObject(std::string inputNameWithExt,
                          std::string LibraryNameWithExt);
 int GenLLFromBC(std::string inputNameWithExt, std::string LLNameWithExt);
+#ifdef MULTI_DEVICE_CUDA_ENABLE
+int OptNVVMIR(std::string inputNameWithExt, std::string optNameWithExt);
+int GenPTXFromLLVMIR(std::string inputNameWithExt, std::string PTXNameWithExt);
+int GenCubinFromPTX(std::string inputNameWithExt, std::string CubinNameWithExt);
+#endif
 
 } // namespace multi_device
 

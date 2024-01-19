@@ -127,4 +127,45 @@ int GenLLFromBC(std::string inputNameWithExt, std::string LLNameWithExt) {
                .exec();
   return rc;
 }
+
+#ifdef MULTI_DEVICE_CUDA_ENABLE
+
+int OptNVVMIR(std::string inputNameWithExt, std::string optNameWithExt) {
+  Command optCommand(kOptPath);
+  int rc = optCommand.appendStr(getOptimizationLevel())
+               .appendStr(getKernelTriple())
+               .appendStr(getKernelArch())
+               .appendStr(getKernelCPU())
+               .appendStr(getKernelAttr())
+               .appendStr("-S")
+               .appendList({"-o", optNameWithExt})
+               .appendStr(inputNameWithExt)
+               .exec();
+  return rc;
+}
+
+int GenPTXFromLLVMIR(std::string inputNameWithExt, std::string PTXNameWithExt) {
+  Command ptxCommand(kLlcPath);
+  int rc = ptxCommand.appendStr(getOptimizationLevel())
+               .appendStr(getKernelTriple())
+               .appendStr(getKernelArch())
+               .appendStr(getKernelCPU())
+               .appendStr(getKernelAttr())
+               .appendList({"-o", PTXNameWithExt})
+               .appendStr(inputNameWithExt)
+               .exec();
+  return rc;
+}
+
+int GenCubinFromPTX(std::string inputNameWithExt,
+                    std::string CubinNameWithExt) {
+  Command cubinCommand(kPtxasPath);
+  int rc = cubinCommand.appendStr(getPTXArch())
+               .appendList({"-o", CubinNameWithExt})
+               .appendStr(inputNameWithExt)
+               .exec();
+  return rc;
+}
+
+#endif
 } // namespace multi_device

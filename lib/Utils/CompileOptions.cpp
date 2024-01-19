@@ -90,4 +90,48 @@ std::string getLibraryExt() {
   return "";
 }
 
+#ifdef MULTI_DEVICE_CUDA_ENABLE
+
+llvm::cl::opt<bool> preservePTX("savePTX",
+                                llvm::cl::desc("don't delete ptx files."),
+                                llvm::cl::init(false),
+                                llvm::cl::cat(MultiDeviceLibGenOptions));
+
+llvm::cl::opt<std::string> ktriple("ktriple",
+                                   llvm::cl::desc("Target triple for gpu"),
+                                   llvm::cl::value_desc("GPU target triple"),
+                                   llvm::cl::init("nvptx64-nvidia-cuda"),
+                                   llvm::cl::cat(MultiDeviceCompileOptions),
+                                   llvm::cl::ValueRequired);
+
+llvm::cl::opt<std::string>
+    kcpu("kcpu", llvm::cl::desc("Target gpu"),
+         llvm::cl::value_desc("Target specific GPU type."),
+         llvm::cl::init("sm_70"), llvm::cl::cat(MultiDeviceCompileOptions),
+         llvm::cl::ValueRequired);
+
+llvm::cl::opt<std::string>
+    karch("karch", llvm::cl::desc("Target architecture to generate code for"),
+          llvm::cl::value_desc("Target a specific architecture gpu type"),
+          llvm::cl::init("nvptx64"), llvm::cl::cat(MultiDeviceCompileOptions),
+          llvm::cl::ValueRequired);
+
+llvm::cl::opt<std::string> kattr("kattr", llvm::cl::desc("Target ptx version"),
+                                 llvm::cl::value_desc("Target PTX version"),
+                                 llvm::cl::init("+ptx76"),
+                                 llvm::cl::cat(MultiDeviceCompileOptions),
+                                 llvm::cl::ValueRequired);
+
+std::string getKernelTriple() { return "--mtriple=" + ktriple; }
+
+std::string getKernelArch() { return "--march=" + karch; }
+
+std::string getPTXArch() { return "-arch=" + kcpu; }
+
+std::string getKernelCPU() { return "--mcpu=" + kcpu; }
+
+std::string getKernelAttr() { return "--mattr=" + kattr; }
+
+#endif
+
 } // namespace multi_device
