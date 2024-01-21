@@ -55,9 +55,8 @@ void multi_device::initONNXPasses() {
 }
 
 void multi_device::initConvertPasses() {
-  mlir::registerPass([]() -> std::unique_ptr<mlir::Pass> {
-    return createConvertTosaToTPUPass();
-  });
+  registerTosaLowerToTPU();
+  registerConvertMemrefToGPU();
 }
 
 void multi_device::initConvertPassPipelines() {

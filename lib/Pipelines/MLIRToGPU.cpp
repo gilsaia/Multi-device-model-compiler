@@ -1,4 +1,5 @@
 #include "multi-device-model-compiler/Conversion/ConvertGPUToNVVM/ConvertGPUToNVVM.h"
+#include "multi-device-model-compiler/Conversion/ConvertMemrefToGPU/ConvertMemrefToGPU.h"
 #include "multi-device-model-compiler/Dialect/Device/Transform/Passes.h"
 #include "multi-device-model-compiler/Dialect/ONNX/Transform/Passes.h"
 #include "multi-device-model-compiler/Pipelines/ConvertPipelines.h"
@@ -75,7 +76,7 @@ void multi_device::pipelines::createMLIRToGPUPipeline(mlir::OpPassManager &pm) {
   // affineVecConfig.vectorSizes = vecSizes;
   // affineVecConfig.fastestVaryingPattern = testFastestSizes;
   // pm.addPass(mlir::affine::createAffineVectorize(affineVecConfig));
-  // pm.addPass(mlir::affine::createAffineDataCopyGenerationPass(0, 0, 0));
+  pm.addPass(mlir::affine::createAffineDataCopyGenerationPass(0, 1, 0));
   pm.addPass(mlir::affine::createPipelineDataTransferPass());
   pm.addPass(mlir::affine::createAffineParallelizePass());
   pm.addPass(mlir::createLowerAffinePass());
@@ -85,6 +86,8 @@ void multi_device::pipelines::createMLIRToGPUPipeline(mlir::OpPassManager &pm) {
   pm.addPass(mlir::createParallelLoopTilingPass({1, 4, 16}));
   pm.addPass(mlir::createGpuMapParallelLoopsPass());
   pm.addPass(mlir::createParallelLoopToGpuPass());
+  pm.addPass(multi_device::createConvertMemrefToGPU());
+  pm.addPass(multi_device::device::createEliminateGPUMemrefSpace());
   pm.addPass(mlir::createGpuLauchSinkIndexComputationsPass());
   pm.addPass(mlir::createGpuKernelOutliningPass());
   pm.addPass(mlir::createGpuAsyncRegionPass());

@@ -1,0 +1,4 @@
+add_library(ConvertMemrefToGPU STATIC ConvertMemrefToGPU.cpp Alloc.cpp Dma.cpp)
+target_link_libraries(ConvertMemrefToGPU PUBLIC
+MLIRGPUDialect MLIRMemRefDialect MLIRTransforms MLIRIR
+)

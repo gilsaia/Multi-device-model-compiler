@@ -7,6 +7,10 @@
 using namespace mlir;
 
 namespace multi_device {
+
+#define GEN_PASS_DEF_FRONTENDTOTOSALOWERINGFIX
+#include "multi-device-model-compiler/Conversion/Passes.h.inc"
+
 void populateONNXToTOSAConversionPattern(ConversionTarget &target,
                                          RewritePatternSet &patterns,
                                          TypeConverter &typeConverter,
@@ -32,26 +36,16 @@ void populateONNXToTOSAConversionPattern(ConversionTarget &target,
                                                         typeConverter, ctx);
 }
 
+namespace {
 // Performs lowering to TOSA dialect
-struct FrontendToTosaLoweringFixPass
-    : public PassWrapper<FrontendToTosaLoweringFixPass,
-                         OperationPass<ModuleOp>> {
-  StringRef getArgument() const override { return "convert-onnx-to-tosa-fix"; }
-
-  StringRef getDescription() const override {
-    return "Lower frontend ops to TOSA dialect with dialect registry.";
-  }
-
-  void getDependentDialects(DialectRegistry &registry) const override {
-    registry.insert<mlir::tosa::TosaDialect>();
-  }
-
+class FrontendToTosaLoweringFixPass
+    : public multi_device::impl::FrontendToTosaLoweringFixBase<
+          FrontendToTosaLoweringFixPass> {
+public:
   FrontendToTosaLoweringFixPass() = default;
-  FrontendToTosaLoweringFixPass(const FrontendToTosaLoweringFixPass &pass)
-      : PassWrapper<FrontendToTosaLoweringFixPass, OperationPass<ModuleOp>>() {}
-
-  void runOnOperation() final;
+  void runOnOperation() override final;
 };
+} // namespace
 
 void FrontendToTosaLoweringFixPass::runOnOperation() {
   ModuleOp module = getOperation();
@@ -88,7 +82,3 @@ void FrontendToTosaLoweringFixPass::runOnOperation() {
   }
 }
 } // namespace multi_device
-
-std::unique_ptr<mlir::Pass> multi_device::createConvertONNXToTOSAFixPass() {
-  return std::make_unique<FrontendToTosaLoweringFixPass>();
-}

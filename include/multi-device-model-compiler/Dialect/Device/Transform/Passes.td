@@ -41,4 +41,13 @@ def OffloadingLLVMToGPU: Pass<"offload-gpu-module",""> {
     ];
 }
 
+def EliminateGPUMemrefSpace:Pass<"eliminate-gpu-memref-space","mlir::ModuleOp"> {
+    let summary="Eliminate Memref space in gpu alloc.";
+    let description=[{
+        In NVVM, There is a space identifier to identify global/shared/local memory,
+        but now in gpu we need to eliminate it so it can translate correctly.
+    }]; 
+    let dependentDialects=["mlir::gpu::GPUDialect"];
+}
+
 #endif // MULTI_DEVICE_MODEL_COMPILER_DIALECT_DEVICE_TRANSFORM_

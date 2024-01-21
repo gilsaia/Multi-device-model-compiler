@@ -14,7 +14,7 @@ void multi_device::pipelines::createMLIRToTPUPipeline(mlir::OpPassManager &pm) {
   pm.addPass(
       multi_device::device::createAddDeviceTypeToFuncPass(deviceOptions));
   pm.addPass(multi_device::createEliminateEntryPointPass());
-  pm.addPass(multi_device::createConvertTosaToTPUPass());
+  pm.addPass(multi_device::createTosaLowerToTPU());
   pm.addPass(mlir::createCanonicalizerPass());
   pm.addPass(top::createInitPass());
   pm.addPass(tpu::createStripIOQuant());

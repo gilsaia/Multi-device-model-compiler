@@ -1,4 +1,4 @@
-add_library(MultiDeviceDevicePass STATIC AddDeviceTypeToFunc.cpp OffloadingLLVMToGPU.cpp)
+add_library(MultiDeviceDevicePass STATIC AddDeviceTypeToFunc.cpp OffloadingLLVMToGPU.cpp EliminateGPUMemrefSpace.cpp)
 
 add_dependencies(MultiDeviceDevicePass MultiDeviceDevicePassIncGen)
 

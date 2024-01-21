@@ -26,4 +26,26 @@ def ConvertGpuOpsToNVVMOpsFix : Pass<"convert-gpu-to-nvvm-fix", "mlir::gpu::GPUM
   ];
 }
 
+def ConvertMemrefToGPU : Pass<"convert-memref-to-gpu","mlir::ModuleOp"> {
+       let summary = "Generate GPU operations for memref copy and alloc/dealloc in gpu space";
+       let dependentDialects = [
+              "mlir::gpu::GPUDialect"
+       ];
+}
+
+def TosaLowerToTPU: Pass<"convert-tosa-to-tpu","mlir::func::FuncOp">{
+       let summary="Lower tosa ops to TOP/TPU dialect.";
+       let dependentDialects = [
+              "tpu_mlir::top::TopDialect",
+              "tpu_mlir::tpu::TpuDialect"
+       ];
+}
+
+def FrontendToTosaLoweringFix: Pass<"convert-onnx-to-tosa-fix","mlir::ModuleOp"> {
+       let summary="Lower frontend ops to TOSA dialect with dialect registry.";
+       let dependentDialects = [
+              "mlir::tosa::TosaDialect"
+       ];
+}
+
 #endif // MULTI_DEVICE_MODEL_COMPILER_CONVERSION_PASSES_

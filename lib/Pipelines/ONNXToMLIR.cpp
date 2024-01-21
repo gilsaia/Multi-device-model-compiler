@@ -23,6 +23,6 @@ void multi_device::pipelines::createONNXToMLIRPipeline(
   pm.addPass(mlir::createSymbolDCEPass());
   // Replace every DisposableElementsAttr with DenseElementsAttr.
   pm.addPass(onnx_mlir::createScrubDisposablePass());
-  pm.addPass(multi_device::createConvertONNXToTOSAFixPass());
+  pm.addPass(multi_device::createFrontendToTosaLoweringFix());
   // pm.addPass(mlir::createCSEPass());
 }

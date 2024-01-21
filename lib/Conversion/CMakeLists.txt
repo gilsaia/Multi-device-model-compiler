@@ -1,6 +1,11 @@
 add_subdirectory(ConvertONNXToTosa)
 add_subdirectory(ConvertTosaToTPU)
 add_subdirectory(ConvertGPUToNVVM)
+add_subdirectory(ConvertMemrefToGPU)
 
 add_library(MultiDeviceConvertPasses INTERFACE)
-target_link_libraries(MultiDeviceConvertPasses INTERFACE ConvertTosaToTPU ConvertONNXToTosaFix ConvertGPUToNVVMFix)
+target_link_libraries(MultiDeviceConvertPasses INTERFACE
+ConvertTosaToTPU 
+ConvertONNXToTosaFix 
+ConvertGPUToNVVMFix
+ConvertMemrefToGPU)

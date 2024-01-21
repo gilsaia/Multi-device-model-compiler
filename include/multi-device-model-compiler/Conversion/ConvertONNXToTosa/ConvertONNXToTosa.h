@@ -4,7 +4,8 @@
 #include "mlir/Pass/Pass.h"
 
 namespace multi_device {
-std::unique_ptr<mlir::Pass> createConvertONNXToTOSAFixPass();
-}
+#define GEN_PASS_DECL_FRONTENDTOTOSALOWERINGFIX
+#include "multi-device-model-compiler/Conversion/Passes.h.inc"
+} // namespace multi_device
 
 #endif
