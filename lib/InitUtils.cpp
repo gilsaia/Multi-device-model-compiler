@@ -1,5 +1,6 @@
 #include "multi-device-model-compiler/InitUtils.h"
 #include "multi-device-model-compiler/Conversion/ConvertTosaToTPU/ConvertTosaToTPU.h"
+#include "multi-device-model-compiler/Conversion/Passes.h"
 #include "multi-device-model-compiler/Pass/InitPasses.h"
 #include "multi-device-model-compiler/Pipelines/ConvertPipelines.h"
 
@@ -10,10 +11,6 @@
 void multi_device::initONNXPasses() {
   mlir::registerPass([]() -> std::unique_ptr<mlir::Pass> {
     return onnx_mlir::createScrubDisposablePass();
-  });
-
-  mlir::registerPass([]() -> std::unique_ptr<mlir::Pass> {
-    return onnx_mlir::createONNXOpTransformPass();
   });
 
   mlir::registerPass([]() -> std::unique_ptr<mlir::Pass> {
@@ -58,9 +55,8 @@ void multi_device::initONNXPasses() {
 }
 
 void multi_device::initConvertPasses() {
-  mlir::registerPass([]() -> std::unique_ptr<mlir::Pass> {
-    return createConvertTosaToTPUPass();
-  });
+  registerTosaLowerToTPU();
+  registerConvertMemrefToGPU();
 }
 
 void multi_device::initConvertPassPipelines() {
@@ -73,6 +69,9 @@ void multi_device::initConvertPassPipelines() {
   mlir::PassPipelineRegistration<>(
       "mlir-to-tpu", "Pipeline lowering TOSA to TPU code",
       multi_device::pipelines::createMLIRToTPUPipeline);
+  mlir::PassPipelineRegistration<>(
+      "mlir-to-gpu", "Pipeline lowering TOSA to GPU code",
+      multi_device::pipelines::createMLIRToGPUPipeline);
 }
 
 void multi_device::initMultiDevicePasses() {

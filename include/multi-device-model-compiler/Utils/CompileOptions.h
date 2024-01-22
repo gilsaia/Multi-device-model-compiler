@@ -26,6 +26,22 @@ std::string getTargetCPU();
 std::string getOptimizationLevel();
 std::string getLibraryExt();
 
+#ifdef MULTI_DEVICE_CUDA_ENABLE
+
+extern llvm::cl::opt<bool> preservePTX;
+extern llvm::cl::opt<std::string> ktriple;
+extern llvm::cl::opt<std::string> kcpu;
+extern llvm::cl::opt<std::string> karch;
+extern llvm::cl::opt<std::string> kattr;
+
+std::string getKernelTriple();
+std::string getKernelArch();
+std::string getPTXArch();
+std::string getKernelCPU();
+std::string getKernelAttr();
+
+#endif
+
 } // namespace multi_device
 
 #endif

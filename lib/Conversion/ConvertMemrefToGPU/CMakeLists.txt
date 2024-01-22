@@ -1,0 +1,5 @@
+add_library(ConvertMemrefToGPU STATIC ConvertMemrefToGPU.cpp Alloc.cpp Dma.cpp)
+add_dependencies(ConvertMemrefToGPU MultiDeviceConversionPassIncGen)
+target_link_libraries(ConvertMemrefToGPU PUBLIC
+MLIRGPUDialect MLIRMemRefDialect MLIRTransforms MLIRIR
+)

@@ -1,6 +1,7 @@
 #include "mlir/Dialect/Affine/IR/AffineOps.h"
 #include "mlir/Dialect/Arith/IR/Arith.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
+#include "mlir/Dialect/LLVMIR/LLVMDialect.h"
 #include "mlir/Dialect/Linalg/IR/Linalg.h"
 #include "mlir/Dialect/Shape/IR/Shape.h"
 #include "mlir/Dialect/Tensor/IR/Tensor.h"
@@ -42,7 +43,7 @@ static llvm::cl::opt<std::string>
                    llvm::cl::init("-"), llvm::cl::cat(MultiDeviceOptOptions));
 
 static llvm::cl::opt<std::string>
-    output_filename("out", llvm::cl::desc("Output filename"),
+    output_filename("o", llvm::cl::desc("Output filename"),
                     llvm::cl::value_desc("filename"), llvm::cl::init("-"),
                     llvm::cl::cat(MultiDeviceOptOptions));
 
@@ -71,6 +72,7 @@ int main(int argc, char **argv) {
   registry.insert<mlir::tensor::TensorDialect>();
   registry.insert<mlir::vector::VectorDialect>();
   registry.insert<mlir::ONNXDialect>();
+  registry.insert<mlir::LLVM::LLVMDialect>();
   registry.insert<mlir::tosa::TosaDialect>();
   registry.insert<mlir::shape::ShapeDialect>();
   registry.insert<tpu::TpuDialect>();
@@ -82,7 +84,6 @@ int main(int argc, char **argv) {
   multi_device::initConvertPassPipelines();
   multi_device::initMultiDevicePasses();
 
-  llvm::cl::HideUnrelatedOptions({&MultiDeviceOptOptions});
   multi_device::removeUnrelatedOptions({&MultiDeviceOptOptions});
 
   mlir::registerAsmPrinterCLOptions();

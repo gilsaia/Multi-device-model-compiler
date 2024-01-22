@@ -17,6 +17,9 @@ using namespace mlir;
 
 namespace multi_device {
 
+#define GEN_PASS_DEF_TOSALOWERTOTPU
+#include "multi-device-model-compiler/Conversion/Passes.h.inc"
+
 void populateTosaToTPUConversionPattern(ConversionTarget &target,
                                         RewritePatternSet &patterns,
                                         TypeConverter &TypeConverter,
@@ -27,28 +30,19 @@ void populateTosaToTPUConversionPattern(ConversionTarget &target,
                                                        TypeConverter, ctx);
 }
 
-struct TosaLoweringToTPUPass
-    : public PassWrapper<TosaLoweringToTPUPass, OperationPass<func::FuncOp>> {
-  StringRef getArgument() const override { return "convert-tosa-to-tpu"; }
-
-  StringRef getDescription() const override {
-    return "Lower tosa ops to TOP/TPU dialect.";
-  }
-
-  void getDependentDialects(DialectRegistry &registry) const override {
-    registry.insert<top::TopDialect>();
-    registry.insert<tpu::TpuDialect>();
-  }
-
+namespace {
+class TosaLoweringToTPUPass
+    : public multi_device::impl::TosaLowerToTPUBase<TosaLoweringToTPUPass> {
+public:
   TosaLoweringToTPUPass() = default;
-  TosaLoweringToTPUPass(const TosaLoweringToTPUPass &pass)
-      : PassWrapper<TosaLoweringToTPUPass, OperationPass<func::FuncOp>>() {}
-
   void runOnOperation() override final;
+
+private:
   void replaceFuncInput(func::FuncOp func);
   void addElementName(func::FuncOp func);
   void saveWeights(func::FuncOp func);
 };
+} // namespace
 
 void TosaLoweringToTPUPass::replaceFuncInput(func::FuncOp func) {
   func.setName("main");
@@ -185,7 +179,3 @@ void TosaLoweringToTPUPass::runOnOperation() {
 }
 
 } // namespace multi_device
-
-std::unique_ptr<mlir::Pass> multi_device::createConvertTosaToTPUPass() {
-  return std::make_unique<TosaLoweringToTPUPass>();
-}

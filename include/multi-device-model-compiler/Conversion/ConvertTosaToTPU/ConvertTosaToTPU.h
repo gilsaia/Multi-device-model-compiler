@@ -7,7 +7,8 @@
 #include "mlir/Transforms/DialectConversion.h"
 
 namespace multi_device {
-std::unique_ptr<mlir::Pass> createConvertTosaToTPUPass();
+#define GEN_PASS_DECL_TOSALOWERTOTPU
+#include "multi-device-model-compiler/Conversion/Passes.h.inc"
 namespace conversion {
 void populateTosaElementWiseToTPUConversionPattern(
     mlir::ConversionTarget &target, mlir::RewritePatternSet &patterns,

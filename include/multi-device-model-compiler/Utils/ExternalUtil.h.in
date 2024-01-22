@@ -7,6 +7,10 @@ namespace multi_device {
 const std::string kInstPath = "@CMAKE_INSTALL_PREFIX@";
 const std::string kOptPath = "$<TARGET_FILE:opt>";
 const std::string kLlcPath = "$<TARGET_FILE:llc>";
+const std::string kDisPath = "$<TARGET_FILE:llvm-dis>";
+#ifdef MULTI_DEVICE_CUDA_ENABLE
+const std::string kPtxasPath = "@CUDAToolkit_BIN_DIR@/ptxas";
+#endif
 const std::string kCxxPath = "@CMAKE_CXX_COMPILER@";
 const std::string kLinkerPath = "@CMAKE_LINKER@";
 const std::string kObjCopyPath = "@CMAKE_OBJCOPY@";

@@ -1,0 +1,7 @@
+add_library(MultiDeviceCUDARuntime SHARED CudaRuntimeWrappers.cpp)
+target_include_directories(MultiDeviceCUDARuntime PRIVATE
+${CUDAToolkit_INCLUDE_DIRS})
+target_link_directories(MultiDeviceCUDARuntime PRIVATE
+${CUDAToolkit_LIBRARY_DIR})
+target_link_libraries(MultiDeviceCUDARuntime PRIVATE
+CUDA::cuda_driver)

@@ -1,0 +1,3 @@
+add_library(ConvertGPUToNVVMFix STATIC ConvertGPUToNVVM.cpp)
+add_dependencies(ConvertGPUToNVVMFix MultiDeviceConversionPassIncGen)
+target_link_libraries(ConvertGPUToNVVMFix MLIRGPUToNVVMTransforms)
