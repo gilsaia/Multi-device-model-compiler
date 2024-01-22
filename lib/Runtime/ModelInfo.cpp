@@ -21,6 +21,12 @@ llvm::cl::opt<std::string>
                  llvm::cl::init("3_640_640"), llvm::cl::ValueRequired,
                  llvm::cl::cat(MultiDeviceModelOptions));
 
+llvm::cl::list<std::string> InputData("data",
+                                      llvm::cl::desc("Input data file path"),
+                                      llvm::cl::CommaSeparated,
+                                      llvm::cl::ValueRequired,
+                                      llvm::cl::cat(MultiDeviceModelOptions));
+
 std::vector<size_t> parseOneShape(std::string &&input) {
   std::vector<size_t> shape;
   size_t pos = input.find('_'), start = 0;
@@ -67,11 +73,33 @@ ModelInfo *ModelInfo::ParseModelInfo() {
       output.emplace(output.begin(), 1);
     }
   }
+  for (auto &data : InputData) {
+    info->inputData.emplace_back(data);
+  }
+  if (!info->inputData.empty() && info->inputData.size() != info->InputNums()) {
+    llvm::errs() << "Data num not equal input num!";
+    return nullptr;
+  }
   return info;
 }
 
 size_t ModelInfo::InputNums() { return inputSizes.size(); }
 size_t ModelInfo::OutputNums() { return outputSizes.size(); }
+
+size_t ModelInfo::GetInputNumElements(int idx) {
+  size_t nums = 1;
+  for (auto &sz : inputSizes[idx]) {
+    nums *= sz;
+  }
+  return nums;
+}
+size_t ModelInfo::GetOutputNumElements(int idx) {
+  size_t nums = 1;
+  for (auto &sz : outputSizes[idx]) {
+    nums *= sz;
+  }
+  return nums;
+}
 
 std::vector<size_t> &ModelInfo::GetInputSize(int idx) {
   return inputSizes[idx];
@@ -79,6 +107,10 @@ std::vector<size_t> &ModelInfo::GetInputSize(int idx) {
 std::vector<size_t> &ModelInfo::GetOutputSize(int idx) {
   return outputSizes[idx];
 }
+
+std::string ModelInfo::GetFile(int idx) { return inputData[idx]; }
+
+bool ModelInfo::ExistFile() { return !inputData.empty(); }
 
 size_t ModelInfo::GetDim() { return dim; }
 } // namespace multi_device

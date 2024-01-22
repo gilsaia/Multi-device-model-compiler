@@ -48,6 +48,8 @@ examples/*.json
 examples/*.npz
 examples/*.ptx
 examples/*.cubin
+examples/*.dat
+examples/**/*.pyc
 
 test/**/*.npz
 
