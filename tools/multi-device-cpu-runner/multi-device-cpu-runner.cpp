@@ -65,7 +65,8 @@ int main(int argc, char **argv) {
       elapsed += (end - start);
     }
     llvm::outs() << "Run \t" << RerunTimes << "\ttimes\n";
-    llvm::outs() << "Average time:\t" << elapsed.count() << "\tseconds\n";
+    llvm::outs() << "Average time:\t" << elapsed.count() / RerunTimes
+                 << "\tseconds\n";
   }
 
   dlclose(handle);

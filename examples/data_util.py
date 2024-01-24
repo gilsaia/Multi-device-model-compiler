@@ -27,6 +27,12 @@ def print_shape(shapes: list[int]):
     return suffix
 
 
+def load_data_raw(file_name: str, type: str):
+    dtype = parse_type(type)
+    data = np.fromfile(file_name, dtype=dtype)
+    return data
+
+
 def load_data(file_name: str, shape: str, type: str):
     shapes = parse_shape(shape)
     dtype = parse_type(type)
@@ -45,7 +51,7 @@ def gen_data(shape: str, type: str):
 
 def save_data(array: np.ndarray, output_name: str):
     file_name = f"{output_name}_{array.dtype}_{print_shape(array.shape)}.dat"
-    array.tofile(file_name)
+    array.tofile(file_name, sep="")
 
 
 def gen_save_data(shape: str, type: str, output_name: str):
