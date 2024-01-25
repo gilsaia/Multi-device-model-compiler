@@ -14,7 +14,7 @@ from data_util import load_data_raw, save_data
 
 
 def profile_model(model: str, args):
-    sess = ort.InferenceSession(model)
+    sess = ort.InferenceSession(model, providers=["CPUExecutionProvider"])
 
     inputs: list[ort.NodeArg] = sess.get_inputs()
     input_data = []
