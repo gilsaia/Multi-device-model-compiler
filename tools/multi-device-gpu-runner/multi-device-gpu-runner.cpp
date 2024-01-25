@@ -64,18 +64,23 @@ int main(int argc, char **argv) {
   if (!OutputName.empty()) {
     SaveFloatTensor(info, params, OutputName);
   }
-
+  auto stream = mgpuStreamCreate();
   if (RerunTimes != 0) {
-    std::chrono::duration<double> elapsed(0);
+    auto eventBegin = mgpuEventEnableTimeCreate(),
+         eventEnd = mgpuEventEnableTimeCreate();
+    float elapsed = 0;
     for (int i = 0; i < RerunTimes; ++i) {
       ClearOutputTensor(info, params);
-      auto start = std::chrono::high_resolution_clock::now();
+      mgpuEventRecord(eventBegin, stream);
       RunGraphFunc(func, params);
-      auto end = std::chrono::high_resolution_clock::now();
-      elapsed += (end - start);
+      mgpuEventRecord(eventEnd, stream);
+      mgpuEventSynchronize(eventEnd);
+      elapsed += mgpuEventElapsedTime(eventBegin, eventEnd);
     }
+    mgpuEventDestroy(eventBegin);
+    mgpuEventDestroy(eventEnd);
     llvm::outs() << "Run \t" << RerunTimes << "\ttimes\n";
-    llvm::outs() << "Average time:\t" << elapsed.count() / RerunTimes
+    llvm::outs() << "Average time:\t" << elapsed / (RerunTimes * 1000)
                  << "\tseconds\n";
   }
 

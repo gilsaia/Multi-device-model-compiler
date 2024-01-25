@@ -33,9 +33,12 @@ MLIR_CUDA_WRAPPERS_EXPORT void mgpuStreamDestroy(CUstream stream);
 MLIR_CUDA_WRAPPERS_EXPORT void mgpuStreamWaitEvent(CUstream stream,
                                                    CUevent event);
 MLIR_CUDA_WRAPPERS_EXPORT CUevent mgpuEventCreate();
+MLIR_CUDA_WRAPPERS_EXPORT CUevent mgpuEventEnableTimeCreate();
 MLIR_CUDA_WRAPPERS_EXPORT void mgpuEventDestroy(CUevent event);
 MLIR_CUDA_WRAPPERS_EXPORT void mgpuEventSynchronize(CUevent event);
 MLIR_CUDA_WRAPPERS_EXPORT void mgpuEventRecord(CUevent event, CUstream stream);
+MLIR_CUDA_WRAPPERS_EXPORT float mgpuEventElapsedTime(CUevent begin,
+                                                     CUevent end);
 void *mgpuMemAlloc(uint64_t sizeBytes, CUstream /*stream*/);
 void mgpuMemFree(void *ptr, CUstream /*stream*/);
 void mgpuMemcpy(void *dst, void *src, size_t sizeBytes, CUstream stream);
