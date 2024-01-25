@@ -20,6 +20,10 @@ multi-device-cpu-runner
 model-converter
 )
 
+if(USE_CUDA_SUPPORT)
+list(APPEND MULTI_DEVICE_TEST_DEPENDS multi-device-gpu-runner)
+endif()
+
 add_lit_testsuite(check-multi-device "Running the multi-device tests..."
 ${CMAKE_CURRENT_BINARY_DIR}
 DEPENDS ${MULTI_DEVICE_TEST_DEPENDS}
