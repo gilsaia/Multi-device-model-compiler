@@ -39,6 +39,8 @@ def profile_model(model: str, args):
             output[0].astype(np.float32),
             f"{args.output}onnxruntime_cpu",
         )
+        np.set_printoptions(threshold=np.inf)
+        print(f"{output[0].astype(np.float32)}")
 
     if args.rerun != 0:
         start_time = time.perf_counter()

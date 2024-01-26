@@ -30,8 +30,8 @@ void SaveFloatData(std::string &file, FloatTensor<N> *tensor) {
     llvm::errs() << "Error open file to write:" << ec.message() << "\n";
     return;
   }
-  output.write(reinterpret_cast<char *>(tensor->allocated),
-               tensor->GetNumElements());
+  output.write(reinterpret_cast<char *>(tensor->aligned),
+               tensor->GetNumElements() * sizeof(float));
   return;
 }
 

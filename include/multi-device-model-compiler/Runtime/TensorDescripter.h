@@ -45,7 +45,7 @@ template <typename T, size_t N> void TensorDescriptor<T, N>::InitData() {
   for (size_t i = 0; i < N; ++i) {
     num *= sizes[i];
   }
-  T *data = (T *)malloc(num * sizeof(T));
+  T *data = (T *)aligned_alloc(64, num * sizeof(T));
   this->allocated = data;
   this->aligned = data;
 }
