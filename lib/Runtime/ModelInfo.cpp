@@ -55,24 +55,24 @@ ModelInfo *ModelInfo::ParseModelInfo() {
   ModelInfo *info = new ModelInfo();
   info->inputSizes = parseShapes(InputShapes);
   info->outputSizes = parseShapes(OutputShapes);
-  size_t dim = 0;
-  for (auto &input : info->inputSizes) {
-    dim = std::max(dim, input.size());
-  }
-  for (auto &output : info->outputSizes) {
-    dim = std::max(dim, output.size());
-  }
-  info->dim = dim;
-  for (auto &input : info->inputSizes) {
-    while (input.size() < dim) {
-      input.emplace(input.begin(), 1);
-    }
-  }
-  for (auto &output : info->outputSizes) {
-    while (output.size() < dim) {
-      output.emplace(output.begin(), 1);
-    }
-  }
+  // size_t dim = 0;
+  // for (auto &input : info->inputSizes) {
+  //   dim = std::max(dim, input.size());
+  // }
+  // for (auto &output : info->outputSizes) {
+  //   dim = std::max(dim, output.size());
+  // }
+  // info->dim = dim;
+  // for (auto &input : info->inputSizes) {
+  //   while (input.size() < dim) {
+  //     input.emplace(input.begin(), 1);
+  //   }
+  // }
+  // for (auto &output : info->outputSizes) {
+  //   while (output.size() < dim) {
+  //     output.emplace(output.begin(), 1);
+  //   }
+  // }
   for (auto &data : InputData) {
     info->inputData.emplace_back(data);
   }
@@ -111,6 +111,4 @@ std::vector<size_t> &ModelInfo::GetOutputSize(int idx) {
 std::string ModelInfo::GetFile(int idx) { return inputData[idx]; }
 
 bool ModelInfo::ExistFile() { return !inputData.empty(); }
-
-size_t ModelInfo::GetDim() { return dim; }
 } // namespace multi_device

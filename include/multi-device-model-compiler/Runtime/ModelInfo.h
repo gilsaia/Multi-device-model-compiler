@@ -17,7 +17,6 @@ struct ModelInfo {
   static ModelInfo *ParseModelInfo();
   size_t InputNums();
   size_t OutputNums();
-  size_t GetDim();
   size_t GetInputNumElements(int idx);
   size_t GetOutputNumElements(int idx);
   std::vector<size_t> &GetInputSize(int idx);
@@ -28,7 +27,6 @@ struct ModelInfo {
 private:
   std::vector<std::vector<size_t>> inputSizes, outputSizes;
   std::vector<std::string> inputData;
-  size_t dim;
 };
 
 } // namespace multi_device

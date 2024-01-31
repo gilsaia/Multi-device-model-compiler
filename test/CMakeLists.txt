@@ -17,6 +17,7 @@ multi-device-opt
 multi-device-translate
 multi-device-lib-generate
 multi-device-cpu-runner
+multi-device-tpu-runner
 model-converter
 )
 
