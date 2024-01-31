@@ -1,23 +1,4 @@
-#include "mlir/ExecutionEngine/CRunnerUtils.h"
-
-#include <stdio.h>
-
-#include "cuda.h"
-#include "cuda_bf16.h"
-#include "cuda_fp16.h"
-
-#ifdef MLIR_ENABLE_CUDA_CUSPARSE
-#include "cusparse.h"
-#ifdef MLIR_ENABLE_CUDA_CUSPARSELT
-#include "cusparseLt.h"
-#endif // MLIR_ENABLE_CUDA_CUSPARSELT
-#endif // MLIR_ENABLE_CUDA_CUSPARSE
-
-#ifdef _WIN32
-#define MLIR_CUDA_WRAPPERS_EXPORT __declspec(dllexport)
-#else
-#define MLIR_CUDA_WRAPPERS_EXPORT
-#endif // _WIN32
+#include "multi-device-model-compiler/Runtime/CUDA/CudaRuntimeWrappers.h"
 
 #define CUDA_REPORT_IF_ERROR(expr)                                             \
   [](CUresult result) {                                                        \
@@ -41,7 +22,7 @@
 
 thread_local static int32_t defaultDevice = 0;
 
-const char *kDebugEnvironmentVariable = "MLIR_CUDA_DEBUG";
+const char *kDebugEnvironmentVariable = "MULTI_DEVICE_CUDA_DEBUG";
 
 /// Helper method that checks environment value for debugging.
 bool isDebugEnabled() {
@@ -105,26 +86,20 @@ static bool cusparseLt_initiated = false;
 #endif // MLIR_ENABLE_CUDA_CUSPARSELT
 #endif // MLIR_ENABLE_CUDA_CUSPARSE
 
-extern "C" MLIR_CUDA_WRAPPERS_EXPORT CUmodule mgpuModuleLoad(void *data) {
-  ScopedContext scopedContext;
-  CUmodule module = nullptr;
-  CUDA_REPORT_IF_ERROR(cuModuleLoadData(&module, data));
-  return module;
-}
+static CUmodule module;
 
-extern "C" MLIR_CUDA_WRAPPERS_EXPORT CUmodule mgpuModuleFileLoad() {
+extern "C" MLIR_CUDA_WRAPPERS_EXPORT void
+mgpuModuleFileLoad(const char *fname) {
   ScopedContext ScopedContext;
-  CUmodule module = nullptr;
-  CUDA_REPORT_IF_ERROR(cuModuleLoad(&module, "./ops.cubin"));
-  return module;
+  CUDA_REPORT_IF_ERROR(cuModuleLoad(&module, fname));
 }
 
-extern "C" MLIR_CUDA_WRAPPERS_EXPORT void mgpuModuleUnload(CUmodule module) {
+extern "C" MLIR_CUDA_WRAPPERS_EXPORT void mgpuModuleUnload() {
   CUDA_REPORT_IF_ERROR(cuModuleUnload(module));
 }
 
 extern "C" MLIR_CUDA_WRAPPERS_EXPORT CUfunction
-mgpuModuleGetFunction(CUmodule module, const char *name) {
+mgpuModuleGetFunction(const char *name) {
   CUfunction function = nullptr;
   CUDA_REPORT_IF_ERROR(cuModuleGetFunction(&function, module, name));
   return function;
@@ -190,6 +165,13 @@ extern "C" MLIR_CUDA_WRAPPERS_EXPORT CUevent mgpuEventCreate() {
   return event;
 }
 
+extern "C" MLIR_CUDA_WRAPPERS_EXPORT CUevent mgpuEventEnableTimeCreate() {
+  ScopedContext scopedContext;
+  CUevent event = nullptr;
+  CUDA_REPORT_IF_ERROR(cuEventCreate(&event, CU_EVENT_DEFAULT));
+  return event;
+}
+
 extern "C" MLIR_CUDA_WRAPPERS_EXPORT void mgpuEventDestroy(CUevent event) {
   CUDA_REPORT_IF_ERROR(cuEventDestroy(event));
 }
@@ -201,6 +183,13 @@ extern MLIR_CUDA_WRAPPERS_EXPORT "C" void mgpuEventSynchronize(CUevent event) {
 extern MLIR_CUDA_WRAPPERS_EXPORT "C" void mgpuEventRecord(CUevent event,
                                                           CUstream stream) {
   CUDA_REPORT_IF_ERROR(cuEventRecord(event, stream));
+}
+
+extern "C" MLIR_CUDA_WRAPPERS_EXPORT float mgpuEventElapsedTime(CUevent begin,
+                                                                CUevent end) {
+  float elapsed = 0;
+  CUDA_REPORT_IF_ERROR(cuEventElapsedTime(&elapsed, begin, end));
+  return elapsed;
 }
 
 extern "C" void *mgpuMemAlloc(uint64_t sizeBytes, CUstream /*stream*/) {

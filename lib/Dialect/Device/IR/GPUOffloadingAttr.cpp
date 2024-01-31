@@ -100,14 +100,6 @@ public:
   // Get the module function callee.
   FunctionCallee getModuleFunctionFn();
 
-  // Get the module load callee.
-  FunctionCallee getModuleLoadFn();
-
-  FunctionCallee getModuleFileLoadFn();
-
-  // Get the module unload callee.
-  FunctionCallee getModuleUnloadFn();
-
   // Get the stream create callee.
   FunctionCallee getStreamCreateFn();
 
@@ -180,24 +172,7 @@ llvm::FunctionCallee llvm::MultiDeviceGPULaunch::getKernelLaunchFn() {
 llvm::FunctionCallee llvm::MultiDeviceGPULaunch::getModuleFunctionFn() {
   return module.getOrInsertFunction(
       "mgpuModuleGetFunction",
-      FunctionType::get(ptrTy, ArrayRef<Type *>({ptrTy, ptrTy}), false));
-}
-
-llvm::FunctionCallee llvm::MultiDeviceGPULaunch::getModuleLoadFn() {
-  return module.getOrInsertFunction(
-      "mgpuModuleLoad",
       FunctionType::get(ptrTy, ArrayRef<Type *>({ptrTy}), false));
-}
-
-llvm::FunctionCallee llvm::MultiDeviceGPULaunch::getModuleFileLoadFn() {
-  return module.getOrInsertFunction("mgpuModuleFileLoad",
-                                    FunctionType::get(ptrTy, false));
-}
-
-llvm::FunctionCallee llvm::MultiDeviceGPULaunch::getModuleUnloadFn() {
-  return module.getOrInsertFunction(
-      "mgpuModuleUnload",
-      FunctionType::get(voidTy, ArrayRef<Type *>({ptrTy}), false));
 }
 
 llvm::FunctionCallee llvm::MultiDeviceGPULaunch::getStreamCreateFn() {
@@ -269,7 +244,6 @@ llvm::MultiDeviceGPULaunch::createKernelArgArray(mlir::gpu::LaunchFuncOp op) {
 
 // Emits LLVM IR to launch a kernel function:
 // %0 = call %binarygetter
-// %1 = call %moduleLoad(%0)
 // %2 = <see generateKernelNameConstant>
 // %3 = call %moduleGetFunction(%1, %2)
 // %4 = call %streamCreate()
@@ -277,7 +251,6 @@ llvm::MultiDeviceGPULaunch::createKernelArgArray(mlir::gpu::LaunchFuncOp op) {
 // call %launchKernel(%3, <launchOp operands 0..5>, 0, %4, %5, nullptr)
 // call %streamSynchronize(%4)
 // call %streamDestroy(%4)
-// call %moduleUnload(%1)
 mlir::LogicalResult
 llvm::MultiDeviceGPULaunch::createKernelLaunch(mlir::gpu::LaunchFuncOp op) {
   auto llvmValue = [&](mlir::Value value) -> Value * {
@@ -306,15 +279,11 @@ llvm::MultiDeviceGPULaunch::createKernelLaunch(mlir::gpu::LaunchFuncOp op) {
   // Create the argument array.
   Value *argArray = createKernelArgArray(op);
 
-  // Load the kernel module.
-  Value *moduleObject = builder.CreateCall(getModuleFileLoadFn());
-
   // Load the kernel function.
   StringRef moduleName = op.getKernelModuleName().getValue();
   Value *moduleFunction = builder.CreateCall(
       getModuleFunctionFn(),
-      {moduleObject,
-       getOrCreateFunctionName(moduleName, op.getKernelName().getValue())});
+      {getOrCreateFunctionName(moduleName, op.getKernelName().getValue())});
 
   // Get the stream to use for execution. If there's no async object then create
   // a stream to make a synchronous kernel launch.
@@ -339,9 +308,6 @@ llvm::MultiDeviceGPULaunch::createKernelLaunch(mlir::gpu::LaunchFuncOp op) {
     builder.CreateCall(getStreamSyncFn(), {stream});
     builder.CreateCall(getStreamDestroyFn(), {stream});
   }
-
-  // Unload the kernel module.
-  builder.CreateCall(getModuleUnloadFn(), {moduleObject});
 
   return success();
 }

@@ -6,6 +6,7 @@
 *.lo
 *.o
 *.obj
+*.pyc
 
 # Precompiled Headers
 *.gch
@@ -48,6 +49,7 @@ examples/*.json
 examples/*.npz
 examples/*.ptx
 examples/*.cubin
+examples/*.dat
 
 test/**/*.npz
 
