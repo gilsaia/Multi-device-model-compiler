@@ -2,8 +2,13 @@
 #define MULTI_DEVICE_MODEL_COMPILER_DIALECT_DEVICE_IR_DEVICE_H_
 
 #include "mlir/Dialect/GPU/IR/CompilationInterfaces.h"
+#include "mlir/Dialect/GPU/IR/GPUDialect.h"
 #include "mlir/IR/Attributes.h"
 #include "mlir/IR/Dialect.h"
+#include "mlir/IR/OpDefinition.h"
+#include "mlir/IR/OpImplementation.h"
+#include "mlir/IR/Operation.h"
+#include "mlir/IR/Region.h"
 #include "llvm/ADT/StringExtras.h"
 
 #include "multi-device-model-compiler/Dialect/Device/IR/DeviceOpsDialect.h.inc"

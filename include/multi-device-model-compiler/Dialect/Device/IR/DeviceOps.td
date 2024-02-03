@@ -5,23 +5,27 @@ include "multi-device-model-compiler/Dialect/Device/IR/DeviceBase.td"
 
 include "mlir/IR/OpBase.td"
 include "mlir/IR/Interfaces.td"
-include "mlir/Dialect/GPU/IR/CompilationAttrInterfaces.td"
+include "mlir/Dialect/GPU/IR/GPUBase.td"
 
-def Device_GPUOffloadingAttr : Device_Attr<"GPUOffloading","gpu_offloading",[
-    OffloadingTranslationAttrTrait,
-    DeclareAttrInterfaceMethods<OffloadingLLVMTranslationAttrInterface>,
-    ]> {
-    let description=[{
-        Device GPU Offloading handler,will output the ptx code,generate right kernel call.
+class Device_Op<string mnemonic,list<Trait> traits=[]> :
+    Op<Device_Dialect,mnemonic,traits>;
+
+def Device_WaitOp : Device_Op<"wait",[GPU_AsyncOpInterface]> {
+    let summary = "Wait for async ops to compute.";
+    let description = [{
+        This op sync the target device with a list of dependent ops.
+
+        In GPU, it will try to generate event to optimize performance.
     }];
-    let parameters = (ins
-        StringRefParameter<"Kernel name">:$kernel,
-        OptionalParameter<"Attribute", "Target to select for embedding.">:$target
-    );
-    let assemblyFormat=[{
-        $kernel (`<` $target^ `>`)?
+
+    let arguments = (ins Variadic<GPU_AsyncToken>:$asyncDependencies);
+    let results = (outs Optional<GPU_AsyncToken>:$asyncToken);
+
+    let assemblyFormat = [{
+        custom<AsyncDependencies>(type($asyncToken), $asyncDependencies) attr-dict
     }];
-    let genVerifyDecl = 1;
+
+    let hasCanonicalizer = 1;
 }
 
 #endif // MULTI_DEVICE_MODEL_COMPILER_DIALECT_DEVICE_OPS_
