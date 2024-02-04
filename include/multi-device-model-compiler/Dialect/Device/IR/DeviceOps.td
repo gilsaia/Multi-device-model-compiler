@@ -28,4 +28,20 @@ def Device_WaitOp : Device_Op<"wait",[GPU_AsyncOpInterface]> {
     let hasCanonicalizer = 1;
 }
 
+def Device_RecordOp : Device_Op<"record"> {
+    let summary = "Record dependency for stream use event.";
+    let description = [{
+        This op used to record dependency within different streams, 
+        will translate to event record.
+    }];
+
+    let arguments = (ins 
+    GPU_AsyncToken:$src,
+    GPU_AsyncToken:$dst);
+
+    let assemblyFormat = [{
+        `async` ` ` `[` $src `->` $dst `]` attr-dict
+    }];
+}
+
 #endif // MULTI_DEVICE_MODEL_COMPILER_DIALECT_DEVICE_OPS_

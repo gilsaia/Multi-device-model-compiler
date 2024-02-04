@@ -50,4 +50,13 @@ def EliminateGPUMemrefSpace:Pass<"eliminate-gpu-memref-space","mlir::ModuleOp"> 
     let dependentDialects=["mlir::gpu::GPUDialect"];
 }
 
+def AsyncDependencyConvert:Pass<"async-dependency-convert","mlir::func::FuncOp"> {
+    let summary="Convert gpu.wait to device.wait,with dependency change.";
+    let description=[{
+        gpu.wait will cause multi-stream creation,which we want to use event-based to 
+        replace that.
+    }];
+    let dependentDialects=["multi_device::device::DeviceDialect"];
+}
+
 #endif // MULTI_DEVICE_MODEL_COMPILER_DIALECT_DEVICE_TRANSFORM_

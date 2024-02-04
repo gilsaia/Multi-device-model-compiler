@@ -91,6 +91,8 @@ void multi_device::pipelines::createMLIRToGPUPipeline(mlir::OpPassManager &pm) {
   pm.addPass(mlir::createGpuLauchSinkIndexComputationsPass());
   pm.addPass(mlir::createGpuKernelOutliningPass());
   pm.addPass(mlir::createGpuAsyncRegionPass());
+  pm.addNestedPass<mlir::func::FuncOp>(
+      multi_device::device::createAsyncDependencyConvert());
   pm.addPass(mlir::createLowerAffinePass());
   pm.addPass(mlir::createCanonicalizerPass());
   pm.addPass(mlir::createCSEPass());
