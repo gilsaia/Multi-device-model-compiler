@@ -32,7 +32,7 @@ public:
   ConvertGPUToNVVMOpsPassFix() = default;
   ConvertGPUToNVVMOpsPassFix(
       const multi_device::ConvertGpuOpsToNVVMOpsFixOptions &options)
-      : ConvertGpuOpsToNVVMOpsFixBase(options){};
+      : ConvertGpuOpsToNVVMOpsFixBase(options) {}
   void runOnOperation() override {
     gpu::GPUModuleOp m = getOperation();
 

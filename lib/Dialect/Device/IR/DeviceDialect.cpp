@@ -64,65 +64,68 @@ static void printAsyncDependencies(OpAsmPrinter &printer, Operation *op,
 // Device_WaitOp
 //===----------------------------------------------------------------------===//
 
-namespace {
+// namespace {
 
-struct EraseRedundantDeviceWaitOpPairs : public OpRewritePattern<WaitOp> {
-public:
-  using OpRewritePattern::OpRewritePattern;
+// struct EraseRedundantDeviceWaitOpPairs : public OpRewritePattern<WaitOp> {
+// public:
+//   using OpRewritePattern::OpRewritePattern;
 
-  LogicalResult matchAndRewrite(WaitOp op,
-                                PatternRewriter &rewriter) const final {
-    auto predicate = [](Value value) {
-      auto waitOp = value.getDefiningOp<WaitOp>();
-      return waitOp && waitOp->getNumOperands() == 0;
-    };
-    if (llvm::none_of(op.getAsyncDependencies(), predicate))
-      return failure();
-    SmallVector<Value> validOperands;
-    for (Value operand : op->getOperands()) {
-      if (predicate(operand))
-        continue;
-      validOperands.push_back(operand);
-    }
-    rewriter.updateRootInPlace(op, [&]() { op->setOperands(validOperands); });
-    return success();
-  }
-};
+//   LogicalResult matchAndRewrite(WaitOp op,
+//                                 PatternRewriter &rewriter) const final {
+//     auto predicate = [](Value value) {
+//       auto waitOp = value.getDefiningOp<WaitOp>();
+//       return waitOp && waitOp->getNumOperands() == 0;
+//     };
+//     if (llvm::none_of(op.getAsyncDependencies(), predicate))
+//       return failure();
+//     SmallVector<Value> validOperands;
+//     for (Value operand : op->getOperands()) {
+//       if (predicate(operand))
+//         continue;
+//       validOperands.push_back(operand);
+//     }
+//     rewriter.updateRootInPlace(op, [&]() { op->setOperands(validOperands);
+//     }); return success();
+//   }
+// };
 
-struct SimplifyDeviceWaitOp : public OpRewritePattern<WaitOp> {
-public:
-  using OpRewritePattern::OpRewritePattern;
+// struct SimplifyDeviceWaitOp : public OpRewritePattern<WaitOp> {
+// public:
+//   using OpRewritePattern::OpRewritePattern;
 
-  LogicalResult matchAndRewrite(WaitOp op,
-                                PatternRewriter &rewriter) const final {
-    // Erase device.wait ops that neither have any async dependencies nor return
-    // any async token.
-    if (op.getAsyncDependencies().empty() && !op.getAsyncToken()) {
-      rewriter.eraseOp(op);
-      return success();
-    }
-    // Replace uses of %t1 = device.wait async [%t0] ops with %t0 and erase the
-    // op.
-    if (llvm::hasSingleElement(op.getAsyncDependencies()) &&
-        op.getAsyncToken()) {
-      rewriter.replaceOp(op, op.getAsyncDependencies());
-      return success();
-    }
-    // Erase %t = device.wait async ... ops, where %t has no uses.
-    if (op.getAsyncToken() && op.getAsyncToken().use_empty()) {
-      rewriter.eraseOp(op);
-      return success();
-    }
-    return failure();
-  }
-};
+//   LogicalResult matchAndRewrite(WaitOp op,
+//                                 PatternRewriter &rewriter) const final {
+//     // Erase device.wait ops that neither have any async dependencies nor
+//     return
+//     // any async token.
+//     if (op.getAsyncDependencies().empty() && !op.getAsyncToken()) {
+//       rewriter.eraseOp(op);
+//       return success();
+//     }
+//     // Replace uses of %t1 = device.wait async [%t0] ops with %t0 and erase
+//     the
+//     // op.
+//     if (llvm::hasSingleElement(op.getAsyncDependencies()) &&
+//         op.getAsyncToken()) {
+//       rewriter.replaceOp(op, op.getAsyncDependencies());
+//       return success();
+//     }
+//     // Erase %t = device.wait async ... ops, where %t has no uses.
+//     if (op.getAsyncToken() && op.getAsyncToken().use_empty()) {
+//       rewriter.eraseOp(op);
+//       return success();
+//     }
+//     return failure();
+//   }
+// };
 
-} // end anonymous namespace
+// } // end anonymous namespace
 
-void WaitOp::getCanonicalizationPatterns(RewritePatternSet &results,
-                                         MLIRContext *context) {
-  results.add<EraseRedundantDeviceWaitOpPairs, SimplifyDeviceWaitOp>(context);
-}
+// void WaitOp::getCanonicalizationPatterns(RewritePatternSet &results,
+//                                          MLIRContext *context) {
+//   results.add<EraseRedundantDeviceWaitOpPairs,
+//   SimplifyDeviceWaitOp>(context);
+// }
 
 #include "multi-device-model-compiler/Dialect/Device/IR/DeviceOpsEnums.cpp.inc"
 

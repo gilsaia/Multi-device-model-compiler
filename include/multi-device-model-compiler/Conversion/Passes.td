@@ -33,6 +33,32 @@ def ConvertMemrefToGPU : Pass<"convert-memref-to-gpu","mlir::ModuleOp"> {
        ];
 }
 
+def ConvertDeviceToLLVM:Pass<"convert-device-to-llvm","mlir::ModuleOp"> {
+       let options = [
+       Option<"hostBarePtrCallConv", "use-bare-pointers-for-host", "bool",
+              /*default=*/"false",
+              "Use bare pointers to pass memref arguments to host functions. "
+              "All memrefs must have static shape.">,
+       Option<"kernelBarePtrCallConv", "use-bare-pointers-for-kernels", "bool",
+              /*default=*/"false",
+              "Use bare pointers to pass memref arguments to kernels. "
+              "The kernel must use the same setting for this option."
+              >,
+       Option<"gpuBinaryAnnotation", "gpu-binary-annotation", "std::string",
+                     /*default=*/"mlir::gpu::getDefaultGpuBinaryAnnotation()",
+                     "Annotation attribute string for GPU binary"
+                     >,
+       Option<"useOpaquePointers", "use-opaque-pointers", "bool",
+                     /*default=*/"true", "Generate LLVM IR using opaque pointers "
+                     "instead of typed pointers">,
+       ];
+       let summary = "Generate llvm ops from gpu/device.";
+       let dependentDialects = [
+              "mlir::LLVM::LLVMDialect",
+              "mlir::memref::MemRefDialect",
+       ];
+}
+
 def TosaLowerToTPU: Pass<"convert-tosa-to-tpu","mlir::func::FuncOp">{
        let summary="Lower tosa ops to TOP/TPU dialect.";
        let dependentDialects = [

@@ -34,8 +34,8 @@ void changeAsyncDependencies(MutableOperandRange range, Value val,
     }
   }
   range.clear();
-  range.append(needDependencies);
   range.append(val);
+  rewriter.setInsertionPoint(op);
   for (auto &src : needDependencies) {
     rewriter.create<multi_device::device::RecordOp>(op->getLoc(), src, val);
   }
@@ -49,9 +49,11 @@ void AsyncDependencyConvertPass::runOnOperation() {
   auto dataStream = rewriter.create<multi_device::device::WaitOp>(
       rewriter.getInsertionPoint()->getLoc(),
       rewriter.getType<gpu::AsyncTokenType>(), ValueRange{});
+  dataStream.setName(rewriter.getStringAttr("DataStream"));
   auto kernelStream = rewriter.create<multi_device::device::WaitOp>(
       rewriter.getInsertionPoint()->getLoc(),
       rewriter.getType<gpu::AsyncTokenType>(), ValueRange{});
+  kernelStream.setName(rewriter.getStringAttr("KernelStream"));
 
   funcOp.walk([&](gpu::AsyncOpInterface op) {
     rewriter.setInsertionPointAfter(op);
@@ -90,7 +92,8 @@ void AsyncDependencyConvertPass::runOnOperation() {
     return WalkResult::advance();
   });
   rewriter.setInsertionPointAfter(funcOp.back().back().getPrevNode());
-  rewriter.create<multi_device::device::WaitOp>(
+  auto streamEnd = rewriter.create<multi_device::device::WaitOp>(
       rewriter.getInsertionPoint()->getLoc(), TypeRange{},
       ValueRange{dataStream.getAsyncToken(), kernelStream.getAsyncToken()});
+  streamEnd.setName("StreamEnd");
 }

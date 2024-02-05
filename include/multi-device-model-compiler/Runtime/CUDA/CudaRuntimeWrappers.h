@@ -34,6 +34,7 @@ MLIR_CUDA_WRAPPERS_EXPORT void mgpuStreamWaitEvent(CUstream stream,
                                                    CUevent event);
 MLIR_CUDA_WRAPPERS_EXPORT CUevent mgpuEventCreate();
 MLIR_CUDA_WRAPPERS_EXPORT CUevent mgpuEventEnableTimeCreate();
+MLIR_CUDA_WRAPPERS_EXPORT CUevent mgpuEventCreateWithStream(CUstream stream);
 MLIR_CUDA_WRAPPERS_EXPORT void mgpuEventDestroy(CUevent event);
 MLIR_CUDA_WRAPPERS_EXPORT void mgpuEventSynchronize(CUevent event);
 MLIR_CUDA_WRAPPERS_EXPORT void mgpuEventRecord(CUevent event, CUstream stream);

@@ -1,3 +1,4 @@
+#include "multi-device-model-compiler/Conversion/ConvertDeviceToLLVM/ConvertDeviceToLLVM.h"
 #include "multi-device-model-compiler/Conversion/ConvertGPUToNVVM/ConvertGPUToNVVM.h"
 #include "multi-device-model-compiler/Conversion/ConvertMemrefToGPU/ConvertMemrefToGPU.h"
 #include "multi-device-model-compiler/Dialect/Device/Transform/Passes.h"
@@ -135,10 +136,14 @@ void multi_device::pipelines::createMLIRToGPUPipeline(mlir::OpPassManager &pm) {
       mlir::createFinalizeMemRefToLLVMConversionPass(memrefToLLVMConfig));
 
   pm.addPass(mlir::createConvertNVVMToLLVMPass());
-  auto gpuToLLVMConfig = mlir::GpuToLLVMConversionPassOptions();
-  gpuToLLVMConfig.hostBarePtrCallConv = true;
-  gpuToLLVMConfig.kernelBarePtrCallConv = true;
-  pm.addPass(mlir::createGpuToLLVMConversionPass(gpuToLLVMConfig));
+  auto deviceToLLVMConfig = multi_device::ConvertDeviceToLLVMOptions();
+  deviceToLLVMConfig.hostBarePtrCallConv = true;
+  deviceToLLVMConfig.kernelBarePtrCallConv = true;
+  pm.addPass(multi_device::createConvertDeviceToLLVM(deviceToLLVMConfig));
+  //   auto gpuToLLVMConfig = mlir::GpuToLLVMConversionPassOptions();
+  //   gpuToLLVMConfig.hostBarePtrCallConv = true;
+  //   gpuToLLVMConfig.kernelBarePtrCallConv = true;
+  //   pm.addPass(mlir::createGpuToLLVMConversionPass(gpuToLLVMConfig));
 
   pm.addPass(mlir::createCanonicalizerPass());
   pm.addPass(mlir::createCSEPass());

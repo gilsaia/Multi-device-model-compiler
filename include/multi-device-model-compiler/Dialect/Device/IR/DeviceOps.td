@@ -5,12 +5,13 @@ include "multi-device-model-compiler/Dialect/Device/IR/DeviceBase.td"
 
 include "mlir/IR/OpBase.td"
 include "mlir/IR/Interfaces.td"
+include "mlir/IR/SymbolInterfaces.td"
 include "mlir/Dialect/GPU/IR/GPUBase.td"
 
 class Device_Op<string mnemonic,list<Trait> traits=[]> :
     Op<Device_Dialect,mnemonic,traits>;
 
-def Device_WaitOp : Device_Op<"wait",[GPU_AsyncOpInterface]> {
+def Device_WaitOp : Device_Op<"wait",[GPU_AsyncOpInterface,Symbol]> {
     let summary = "Wait for async ops to compute.";
     let description = [{
         This op sync the target device with a list of dependent ops.
@@ -24,8 +25,6 @@ def Device_WaitOp : Device_Op<"wait",[GPU_AsyncOpInterface]> {
     let assemblyFormat = [{
         custom<AsyncDependencies>(type($asyncToken), $asyncDependencies) attr-dict
     }];
-
-    let hasCanonicalizer = 1;
 }
 
 def Device_RecordOp : Device_Op<"record"> {
