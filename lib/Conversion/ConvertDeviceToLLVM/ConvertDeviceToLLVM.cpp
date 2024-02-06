@@ -232,8 +232,6 @@ LogicalResult ConvertRecordOpToDeviceRuntimeCallPattern::matchAndRewrite(
   auto stream = adaptor.getSrc(), dstStream = adaptor.getDst();
   auto event = getEventByStream(stream);
   if (!event) {
-    recordOp.print(llvm::errs());
-    llvm::errs() << "\nRecord op failed\n";
     return rewriter.notifyMatchFailure(recordOp, "Can't find event.");
   }
   auto loc = recordOp.getLoc();

@@ -59,4 +59,14 @@ def AsyncDependencyConvert:Pass<"async-dependency-convert","mlir::func::FuncOp">
     let dependentDialects=["multi_device::device::DeviceDialect"];
 }
 
+def TilingAffineForGPU:Pass<"tiling-affine-for-gpu","mlir::ModuleOp"> {
+    let summary="Find a proper tiling size for affine-for loop,to best use gpu power.";
+    let description=[{
+        This pass will try to find a proper tiling size with the information of device/data.
+        for now, we assume that device better for m-block-1024-thread, thread num can decrease
+        when data size is small,but better with a 2^n mode.
+    }];
+    let dependentDialects=["mlir::affine::AffineDialect","mlir::scf::SCFDialect"];
+}
+
 #endif // MULTI_DEVICE_MODEL_COMPILER_DIALECT_DEVICE_TRANSFORM_

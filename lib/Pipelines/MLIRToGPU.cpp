@@ -70,6 +70,10 @@ void multi_device::pipelines::createMLIRToGPUPipeline(mlir::OpPassManager &pm) {
   pm.addPass(mlir::createConvertLinalgToAffineLoopsPass());
   pm.addPass(mlir::affine::createAffineExpandIndexOpsPass());
   pm.addPass(mlir::affine::createAffineLoopNormalizePass());
+  pm.addPass(mlir::affine::createAffineDataCopyGenerationPass(0, 1, 0));
+  pm.addPass(mlir::affine::createLoopFusionPass());
+  // TODO: vectorize
+  pm.addPass(mlir::affine::createLoopCoalescingPass());
   pm.addPass(mlir::affine::createSimplifyAffineStructuresPass());
   pm.addPass(mlir::affine::createAffineScalarReplacementPass());
   // auto affineVecConfig = mlir::affine::AffineVectorizeOptions();
@@ -77,14 +81,14 @@ void multi_device::pipelines::createMLIRToGPUPipeline(mlir::OpPassManager &pm) {
   // affineVecConfig.vectorSizes = vecSizes;
   // affineVecConfig.fastestVaryingPattern = testFastestSizes;
   // pm.addPass(mlir::affine::createAffineVectorize(affineVecConfig));
-  pm.addPass(mlir::affine::createAffineDataCopyGenerationPass(0, 1, 0));
   pm.addPass(mlir::affine::createPipelineDataTransferPass());
   pm.addPass(mlir::affine::createAffineParallelizePass());
   pm.addPass(mlir::createLowerAffinePass());
-  pm.addPass(mlir::createParallelLoopSpecializationPass());
   pm.addPass(mlir::createCanonicalizerPass());
   pm.addPass(mlir::createCSEPass());
-  pm.addPass(mlir::createParallelLoopTilingPass({1, 32, 32}));
+  pm.addPass(mlir::createParallelLoopSpecializationPass());
+  pm.addPass(multi_device::device::createTilingAffineForGPU());
+  //   pm.addPass(mlir::createParallelLoopTilingPass({32, 32, 32}));
   pm.addPass(mlir::createGpuMapParallelLoopsPass());
   pm.addPass(mlir::createParallelLoopToGpuPass());
   pm.addPass(multi_device::createConvertMemrefToGPU());
@@ -140,10 +144,6 @@ void multi_device::pipelines::createMLIRToGPUPipeline(mlir::OpPassManager &pm) {
   deviceToLLVMConfig.hostBarePtrCallConv = true;
   deviceToLLVMConfig.kernelBarePtrCallConv = true;
   pm.addPass(multi_device::createConvertDeviceToLLVM(deviceToLLVMConfig));
-  //   auto gpuToLLVMConfig = mlir::GpuToLLVMConversionPassOptions();
-  //   gpuToLLVMConfig.hostBarePtrCallConv = true;
-  //   gpuToLLVMConfig.kernelBarePtrCallConv = true;
-  //   pm.addPass(mlir::createGpuToLLVMConversionPass(gpuToLLVMConfig));
 
   pm.addPass(mlir::createCanonicalizerPass());
   pm.addPass(mlir::createCSEPass());

@@ -59,7 +59,7 @@ def profile_model(model: str, args):
             input_data.append(data)
     else:
         for shape in input_shape:
-            data = np.random.random(shape)
+            data = np.random.random(shape).astype(np.float32)
             data = torch.from_numpy(data)
             input_data.append(data)
 
