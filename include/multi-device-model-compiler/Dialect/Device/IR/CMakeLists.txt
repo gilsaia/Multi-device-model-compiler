@@ -1,4 +1,4 @@
-set(LLVM_TARGET_DEFINITIONS DeviceOps.td)
+set(LLVM_TARGET_DEFINITIONS DeviceBase.td)
 mlir_tablegen(DeviceOpsEnums.h.inc -gen-enum-decls)
 mlir_tablegen(DeviceOpsEnums.cpp.inc -gen-enum-defs)
 mlir_tablegen(DeviceOpsAttributes.h.inc -gen-attrdef-decls -attrdefs-dialect=device)

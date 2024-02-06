@@ -26,7 +26,7 @@ def profile_model(model: str, args):
             input_data.append(data)
     else:
         for input_tensor in inputs:
-            data = np.random.random(input_tensor.shape)
+            data = np.random.random(input_tensor.shape).astype(np.float32)
             input_data.append(data)
 
     run_info = {}

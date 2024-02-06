@@ -165,6 +165,14 @@ extern "C" MLIR_CUDA_WRAPPERS_EXPORT CUevent mgpuEventCreate() {
   return event;
 }
 
+extern "C" MLIR_CUDA_WRAPPERS_EXPORT CUevent
+mgpuEventCreateWithStream(CUstream stream) {
+  ScopedContext scopedContext;
+  CUevent event = nullptr;
+  CUDA_REPORT_IF_ERROR(cuEventCreate(&event, CU_EVENT_DISABLE_TIMING));
+  return event;
+}
+
 extern "C" MLIR_CUDA_WRAPPERS_EXPORT CUevent mgpuEventEnableTimeCreate() {
   ScopedContext scopedContext;
   CUevent event = nullptr;

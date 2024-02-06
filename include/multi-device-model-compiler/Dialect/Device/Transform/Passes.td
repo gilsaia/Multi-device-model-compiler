@@ -50,4 +50,23 @@ def EliminateGPUMemrefSpace:Pass<"eliminate-gpu-memref-space","mlir::ModuleOp"> 
     let dependentDialects=["mlir::gpu::GPUDialect"];
 }
 
+def AsyncDependencyConvert:Pass<"async-dependency-convert","mlir::func::FuncOp"> {
+    let summary="Convert gpu.wait to device.wait,with dependency change.";
+    let description=[{
+        gpu.wait will cause multi-stream creation,which we want to use event-based to 
+        replace that.
+    }];
+    let dependentDialects=["multi_device::device::DeviceDialect"];
+}
+
+def TilingAffineForGPU:Pass<"tiling-affine-for-gpu","mlir::ModuleOp"> {
+    let summary="Find a proper tiling size for affine-for loop,to best use gpu power.";
+    let description=[{
+        This pass will try to find a proper tiling size with the information of device/data.
+        for now, we assume that device better for m-block-1024-thread, thread num can decrease
+        when data size is small,but better with a 2^n mode.
+    }];
+    let dependentDialects=["mlir::affine::AffineDialect","mlir::scf::SCFDialect"];
+}
+
 #endif // MULTI_DEVICE_MODEL_COMPILER_DIALECT_DEVICE_TRANSFORM_

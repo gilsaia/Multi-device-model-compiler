@@ -1,0 +1,3 @@
+add_library(ConvertDeviceToLLVM STATIC ConvertDeviceToLLVM.cpp)
+add_dependencies(ConvertDeviceToLLVM MultiDeviceConversionPassIncGen)
+target_link_libraries(ConvertDeviceToLLVM PUBLIC MLIRGPUToGPURuntimeTransforms)
