@@ -42,7 +42,7 @@ def save_onnx(model_name: str, input_shape: str, output: str):
         data = torch.rand(input)
         input_data.append(data)
     output_name = f"{output}/{model_name}.onnx"
-    torch.onnx.export(model, tuple(input_data), output_name, opset_version=12)
+    torch.onnx.export(model, tuple(input_data), output_name, opset_version=13)
 
 
 def parse_args():
@@ -51,7 +51,7 @@ def parse_args():
         "-m", "--model", type=str, help="get model name", default="linear"
     )
     parser.add_argument(
-        "-i", "--input", type=str, help="Input shape", default="3_640_640"
+        "-i", "--input", type=str, help="Input shape", default="3_32_32"
     )
     parser.add_argument(
         "-o", "--output", type=str, help="output dir", default=current_dir + "/ONNX"

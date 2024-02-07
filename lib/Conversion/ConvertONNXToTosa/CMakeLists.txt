@@ -1,6 +1,7 @@
 add_library(ConvertONNXToTosaFix STATIC 
 ConvertONNXToTosa.cpp
-Tensor/return.cpp)
+Tensor/return.cpp
+nn/matmul.cpp)
 add_dependencies(ConvertONNXToTosaFix MultiDeviceConversionPassIncGen)
 target_link_libraries(ConvertONNXToTosaFix PUBLIC   
 OMONNXOps

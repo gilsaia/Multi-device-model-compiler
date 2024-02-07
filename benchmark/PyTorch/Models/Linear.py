@@ -15,4 +15,4 @@ class Linear(nn.Module):
 
 
 def get_default_model():
-    return Linear(640, 640)
+    return Linear(32, 64)
