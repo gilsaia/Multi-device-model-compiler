@@ -10,6 +10,8 @@
 llvm::cl::OptionCategory ModelConverterOptions("Converter Options", "");
 
 int main(int argc, char **argv) {
+  multi_device::removeUnrelatedOptions({&ModelConverterOptions});
+
   llvm::cl::opt<std::string> inputFilename(
       llvm::cl::Positional, llvm::cl::desc("<input file>"), llvm::cl::Required,
       llvm::cl::cat(ModelConverterOptions));
@@ -20,7 +22,6 @@ int main(int argc, char **argv) {
       llvm::cl::cat(ModelConverterOptions));
 
   llvm::cl::HideUnrelatedOptions({&ModelConverterOptions});
-  multi_device::removeUnrelatedOptions({&ModelConverterOptions});
 
   if (!llvm::cl::ParseCommandLineOptions(argc, argv,
                                          "Onnx model converter\n")) {

@@ -34,6 +34,8 @@ void populateONNXToTOSAConversionPattern(ConversionTarget &target,
                                                       typeConverter, ctx);
   onnx_mlir::populateLoweringONNXReshapeOpToTOSAPattern(target, patterns,
                                                         typeConverter, ctx);
+  conversion::populateLoweringONNXReturnOpToTOSAPattern(target, patterns,
+                                                        typeConverter, ctx);
 }
 
 namespace {
