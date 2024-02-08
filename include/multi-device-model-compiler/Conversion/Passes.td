@@ -67,6 +67,17 @@ def TosaLowerToTPU: Pass<"convert-tosa-to-tpu","mlir::func::FuncOp">{
        ];
 }
 
+def TosaLowerToLinalgSaveTensor: Pass<"convert-tosa-to-linalg-save-tensor","mlir::ModuleOp"> {
+       let summary = "Lower tosa ops to Linalg,which try to reuse tensor.";
+       let dependentDialects = [
+              "mlir::linalg::LinalgDialect",
+              "mlir::arith::ArithDialect",
+              "mlir::math::MathDialect",
+              "mlir::tensor::TensorDialect",
+              "mlir::scf::SCFDialect"
+       ];
+}
+
 def FrontendToTosaLoweringFix: Pass<"convert-onnx-to-tosa-fix","mlir::ModuleOp"> {
        let summary="Lower frontend ops to TOSA dialect with dialect registry.";
        let dependentDialects = [

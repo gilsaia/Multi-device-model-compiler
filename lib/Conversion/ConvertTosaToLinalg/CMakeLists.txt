@@ -1,0 +1,9 @@
+add_library(ConvertTosaToLinalgSaveTensor STATIC 
+ConvertTosaToLinalgSaveTensor.cpp
+clamp.cpp)
+add_dependencies(ConvertTosaToLinalgSaveTensor MultiDeviceConversionPassIncGen)
+target_link_libraries(ConvertTosaToLinalgSaveTensor PUBLIC
+MLIRLinalgDialect MLIRArithDialect 
+MLIRTosaDialect MLIRMathDialect 
+MLIRSCFDialect MLIRTensorDialect 
+MLIRIR MLIRTransforms)

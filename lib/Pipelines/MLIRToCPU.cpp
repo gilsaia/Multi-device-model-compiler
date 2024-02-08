@@ -1,3 +1,4 @@
+#include "multi-device-model-compiler/Conversion/Passes.h"
 #include "multi-device-model-compiler/Dialect/Device/Transform/Passes.h"
 #include "multi-device-model-compiler/Dialect/ONNX/Transform/Passes.h"
 #include "multi-device-model-compiler/Pipelines/ConvertPipelines.h"
@@ -36,17 +37,22 @@ void multi_device::pipelines::createMLIRToCPUPipeline(mlir::OpPassManager &pm) {
   pm.addPass(mlir::tosa::createTosaMakeBroadcastablePass());
   pm.addPass(mlir::tosa::createTosaInferShapesPass());
   pm.addPass(mlir::tosa::createTosaValidationPass());
+  pm.addPass(multi_device::createTosaLowerToLinalgSaveTensor());
   pm.addNestedPass<mlir::func::FuncOp>(mlir::tosa::createTosaToLinalgNamed());
   pm.addPass(mlir::tosa::createTosaLayerwiseConstantFoldPass());
   pm.addNestedPass<mlir::func::FuncOp>(mlir::tosa::createTosaToLinalg());
+  pm.addPass(mlir::createLinalgGeneralizationPass());
+  // pm.addPass(mlir::createLinalgElementwiseOpFusionPass());
   pm.addNestedPass<mlir::func::FuncOp>(mlir::tosa::createTosaToArith());
   pm.addNestedPass<mlir::func::FuncOp>(mlir::arith::createArithExpandOpsPass());
   pm.addNestedPass<mlir::func::FuncOp>(mlir::tosa::createTosaToTensor());
   pm.addPass(mlir::createConvertTensorToLinalgPass());
   // pm.addPass(mlir::createLinalgGeneralizationPass());
   // pm.addPass(mlir::createLinalgElementwiseOpFusionPass());
+
   pm.addPass(mlir::createCanonicalizerPass());
   pm.addPass(mlir::createCSEPass());
+  pm.addPass(mlir::bufferization::createEmptyTensorEliminationPass());
   pm.addPass(mlir::bufferization::createEmptyTensorToAllocTensorPass());
   pm.addPass(mlir::createLinalgBufferizePass());
   pm.addPass(mlir::tensor::createTensorBufferizePass());
@@ -62,6 +68,7 @@ void multi_device::pipelines::createMLIRToCPUPipeline(mlir::OpPassManager &pm) {
   // pm.addPass(mlir::createLoopUnrollPass());
   // pm.addPass(mlir::createAffineParallelizePass());
   pm.addPass(mlir::affine::createSimplifyAffineStructuresPass());
+  pm.addPass(mlir::affine::createLoopFusionPass());
   auto affineVecConfig = mlir::affine::AffineVectorizeOptions();
   std::vector<int64_t> vecSizes{32}, testFastestSizes{0};
   affineVecConfig.vectorSizes = vecSizes;

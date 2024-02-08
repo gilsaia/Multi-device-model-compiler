@@ -29,6 +29,9 @@ public:
         break;
       }
     }
+    if (!bias) {
+      return rewriter.notifyMatchFailure(op, "Not Find bias");
+    }
 
     auto weightType = op.getB().getType().cast<RankedTensorType>();
     llvm::SmallVector<int64_t, 2> weightDims{weightType.getShape()[1],

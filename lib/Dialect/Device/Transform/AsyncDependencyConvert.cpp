@@ -87,6 +87,9 @@ void AsyncDependencyConvertPass::runOnOperation() {
       auto launch = mlir::cast<gpu::LaunchFuncOp>(op);
       ::changeAsyncDependencies(launch.getAsyncDependenciesMutable(),
                                 kernelStream.getAsyncToken(), op, rewriter);
+      rewriter.create<multi_device::device::RecordOp>(
+          op.getLoc(), dataStream.getAsyncToken(),
+          kernelStream.getAsyncToken());
       return WalkResult::advance();
     }
     return WalkResult::advance();
