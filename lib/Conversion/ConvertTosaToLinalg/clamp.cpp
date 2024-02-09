@@ -64,8 +64,6 @@ public:
         });
 
     rewriter.replaceOp(op, linalgOp);
-    // rewriter.replaceAllUsesWith(op.getResult(), linalgOp.getResult(0));
-    // rewriter.eraseOp(op);
 
     return success();
   }
