@@ -23,6 +23,7 @@
 #include "mlir/Dialect/Func/Transforms/Passes.h"
 #include "mlir/Dialect/LLVMIR/Transforms/Passes.h"
 #include "mlir/Dialect/Linalg/Passes.h"
+#include "mlir/Dialect/MemRef/Transforms/Passes.h"
 #include "mlir/Dialect/Tensor/Transforms/Passes.h"
 #include "mlir/Dialect/Tosa/Transforms/Passes.h"
 #include "mlir/Transforms/Passes.h"
@@ -41,26 +42,34 @@ void multi_device::pipelines::createMLIRToCPUPipeline(mlir::OpPassManager &pm) {
   pm.addNestedPass<mlir::func::FuncOp>(mlir::tosa::createTosaToLinalgNamed());
   pm.addPass(mlir::tosa::createTosaLayerwiseConstantFoldPass());
   pm.addNestedPass<mlir::func::FuncOp>(mlir::tosa::createTosaToLinalg());
-  pm.addPass(mlir::createLinalgGeneralizationPass());
+  // pm.addPass(mlir::createLinalgGeneralizationPass());
   // pm.addPass(mlir::createLinalgElementwiseOpFusionPass());
   pm.addNestedPass<mlir::func::FuncOp>(mlir::tosa::createTosaToArith());
   pm.addNestedPass<mlir::func::FuncOp>(mlir::arith::createArithExpandOpsPass());
   pm.addNestedPass<mlir::func::FuncOp>(mlir::tosa::createTosaToTensor());
   pm.addPass(mlir::createConvertTensorToLinalgPass());
-  // pm.addPass(mlir::createLinalgGeneralizationPass());
-  // pm.addPass(mlir::createLinalgElementwiseOpFusionPass());
+  pm.addNestedPass<mlir::func::FuncOp>(mlir::createLinalgDetensorizePass());
 
   pm.addPass(mlir::createCanonicalizerPass());
   pm.addPass(mlir::createCSEPass());
+
   pm.addPass(mlir::bufferization::createEmptyTensorEliminationPass());
   pm.addPass(mlir::bufferization::createEmptyTensorToAllocTensorPass());
-  pm.addPass(mlir::createLinalgBufferizePass());
   pm.addPass(mlir::tensor::createTensorBufferizePass());
   pm.addPass(mlir::arith::createArithBufferizePass());
   pm.addPass(mlir::func::createFuncBufferizePass());
+  pm.addPass(multi_device::device::createBufferizeOpWithAnalysis());
   pm.addPass(mlir::createCanonicalizerPass());
   pm.addPass(mlir::createCSEPass());
   pm.addPass(mlir::bufferization::createBufferDeallocationPass());
+
+  pm.addPass(mlir::bufferization::createBufferDeallocationSimplificationPass());
+  pm.addPass(mlir::memref::createExpandStridedMetadataPass());
+  pm.addPass(mlir::bufferization::createBufferHoistingPass());
+  pm.addPass(mlir::memref::createFoldMemRefAliasOpsPass());
+  pm.addPass(mlir::memref::createNormalizeMemRefsPass());
+  pm.addPass(mlir::bufferization::createFinalizingBufferizePass());
+
   pm.addPass(mlir::createConvertLinalgToAffineLoopsPass());
   pm.addPass(mlir::affine::createAffineLoopNormalizePass());
   // pm.addPass(mlir::createLoopCoalescingPass());
@@ -74,8 +83,8 @@ void multi_device::pipelines::createMLIRToCPUPipeline(mlir::OpPassManager &pm) {
   affineVecConfig.vectorSizes = vecSizes;
   affineVecConfig.fastestVaryingPattern = testFastestSizes;
   pm.addPass(mlir::affine::createAffineVectorize(affineVecConfig));
+
   pm.addPass(mlir::createLowerAffinePass());
-  pm.addPass(mlir::bufferization::createFinalizingBufferizePass());
   pm.addPass(mlir::createConvertSCFToCFPass());
   pm.addPass(mlir::LLVM::createRequestCWrappersPass());
   auto arithToLLVMConfig = mlir::ArithToLLVMConversionPassOptions();

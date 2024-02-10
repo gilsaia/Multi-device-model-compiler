@@ -69,4 +69,12 @@ def TilingAffineForGPU:Pass<"tiling-affine-for-gpu","mlir::ModuleOp"> {
     let dependentDialects=["mlir::affine::AffineDialect","mlir::scf::SCFDialect"];
 }
 
+def BufferizeOpWithAnalysis:Pass<"bufferize-op-with-analysis","mlir::ModuleOp"> {
+    let summary = "Use one-shot bufferize methods to buffer op that will not generate useless copy.";
+    let description=[{
+        This pass will use one-shot bufferize methods to buffer op,
+        which in origin linalg op will generate copy-on-use first that is useless.
+    }];
+}
+
 #endif // MULTI_DEVICE_MODEL_COMPILER_DIALECT_DEVICE_TRANSFORM_

@@ -3,7 +3,8 @@ AddDeviceTypeToFunc.cpp
 AsyncDependencyConvert.cpp
 OffloadingLLVMToGPU.cpp 
 EliminateGPUMemrefSpace.cpp
-TilingAffineForGPU.cpp)
+TilingAffineForGPU.cpp
+BufferizeOpWithAnalysis.cpp)
 
 add_dependencies(MultiDeviceDevicePass MultiDeviceDevicePassIncGen)
 
