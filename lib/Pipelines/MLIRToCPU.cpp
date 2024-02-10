@@ -42,8 +42,6 @@ void multi_device::pipelines::createMLIRToCPUPipeline(mlir::OpPassManager &pm) {
   pm.addNestedPass<mlir::func::FuncOp>(mlir::tosa::createTosaToLinalgNamed());
   pm.addPass(mlir::tosa::createTosaLayerwiseConstantFoldPass());
   pm.addNestedPass<mlir::func::FuncOp>(mlir::tosa::createTosaToLinalg());
-  // pm.addPass(mlir::createLinalgGeneralizationPass());
-  // pm.addPass(mlir::createLinalgElementwiseOpFusionPass());
   pm.addNestedPass<mlir::func::FuncOp>(mlir::tosa::createTosaToArith());
   pm.addNestedPass<mlir::func::FuncOp>(mlir::arith::createArithExpandOpsPass());
   pm.addNestedPass<mlir::func::FuncOp>(mlir::tosa::createTosaToTensor());
@@ -72,12 +70,18 @@ void multi_device::pipelines::createMLIRToCPUPipeline(mlir::OpPassManager &pm) {
 
   pm.addPass(mlir::createConvertLinalgToAffineLoopsPass());
   pm.addPass(mlir::affine::createAffineLoopNormalizePass());
-  // pm.addPass(mlir::createLoopCoalescingPass());
-  // pm.addPass(mlir::createLoopTilingPass());
-  // pm.addPass(mlir::createLoopUnrollPass());
-  // pm.addPass(mlir::createAffineParallelizePass());
+  pm.addPass(mlir::affine::createAffineLoopInvariantCodeMotionPass());
+  pm.addPass(mlir::affine::createAffineExpandIndexOpsPass());
   pm.addPass(mlir::affine::createSimplifyAffineStructuresPass());
-  pm.addPass(mlir::affine::createLoopFusionPass());
+  pm.addPass(mlir::affine::createLoopFusionPass(0, 0, true));
+  pm.addPass(mlir::affine::createLoopCoalescingPass());
+  pm.addPass(mlir::affine::createAffineLoopNormalizePass());
+  pm.addPass(mlir::affine::createAffineExpandIndexOpsPass());
+  pm.addPass(mlir::affine::createAffineScalarReplacementPass());
+  pm.addPass(mlir::createCanonicalizerPass());
+  pm.addPass(mlir::createCSEPass());
+  pm.addPass(mlir::affine::createSimplifyAffineStructuresPass());
+  pm.addPass(mlir::affine::createLoopFusionPass(0, 0, true));
   auto affineVecConfig = mlir::affine::AffineVectorizeOptions();
   std::vector<int64_t> vecSizes{32}, testFastestSizes{0};
   affineVecConfig.vectorSizes = vecSizes;

@@ -9,21 +9,25 @@ using namespace mlir;
 
 namespace multi_device {
 namespace device {
-#define GEN_PASS_DEF_TILINGAFFINEFORGPU
+#define GEN_PASS_DEF_TILINGAFFINEFORDEVICE
 #include "multi-device-model-compiler/Dialect/Device/Transform/Passes.h.inc"
 } // namespace device
 } // namespace multi_device
 
 namespace {
-class TilingAffineForGPUPass final
-    : public multi_device::device::impl::TilingAffineForGPUBase<
-          TilingAffineForGPUPass> {
-  using TilingAffineForGPUBase::TilingAffineForGPUBase;
+class TilingAffineForDevicePass final
+    : public multi_device::device::impl::TilingAffineForDeviceBase<
+          TilingAffineForDevicePass> {
+public:
+  using TilingAffineForDeviceBase::TilingAffineForDeviceBase;
+  TilingAffineForDevicePass(
+      const multi_device::device::TilingAffineForDeviceOptions &options)
+      : TilingAffineForDeviceBase(options) {}
   void runOnOperation() override final;
 };
 } // namespace
 
-void TilingParallelOp(scf::ParallelOp parallel) {
+void TilingParallelOp(scf::ParallelOp parallel, int64_t totalTilingSize) {
   auto uppers = parallel.getUpperBound();
   llvm::SmallVector<int64_t, 4> forDims;
   for (auto upper : uppers) {
@@ -35,7 +39,7 @@ void TilingParallelOp(scf::ParallelOp parallel) {
     }
   }
   llvm::SmallVector<int64_t, 4> tilingDims(forDims.size(), 1);
-  int64_t totalTiling = 1024, remainTiling = totalTiling;
+  int64_t totalTiling = totalTilingSize, remainTiling = totalTiling;
   for (int i = tilingDims.size() - 1; i >= 0; --i) {
     if (forDims[i] > 1 && remainTiling > 1) {
       int64_t tmpTiling = remainTiling;
@@ -78,13 +82,13 @@ void TilingParallelOp(scf::ParallelOp parallel) {
   scf::tileParallelLoop(parallel, tilingDims, false);
 }
 
-void TilingAffineForGPUPass::runOnOperation() {
+void TilingAffineForDevicePass::runOnOperation() {
   auto moduleOp = getOperation();
-  moduleOp.walk([](scf::ParallelOp parallel) {
+  moduleOp.walk([&](scf::ParallelOp parallel) {
     if (mlir::isa<scf::ParallelOp>(parallel->getParentOp())) {
       return WalkResult::advance();
     }
-    TilingParallelOp(parallel);
+    TilingParallelOp(parallel, totalTilingSize);
     return WalkResult::advance();
   });
 }

@@ -87,7 +87,8 @@ void multi_device::pipelines::createMLIRToGPUPipeline(mlir::OpPassManager &pm) {
   pm.addPass(mlir::createCanonicalizerPass());
   pm.addPass(mlir::createCSEPass());
   pm.addPass(mlir::createParallelLoopSpecializationPass());
-  pm.addPass(multi_device::device::createTilingAffineForGPU());
+
+  pm.addPass(multi_device::device::createTilingAffineForDevice());
   //   pm.addPass(mlir::createParallelLoopTilingPass({32, 32, 32}));
   pm.addPass(mlir::createGpuMapParallelLoopsPass());
   pm.addPass(mlir::createParallelLoopToGpuPass());
