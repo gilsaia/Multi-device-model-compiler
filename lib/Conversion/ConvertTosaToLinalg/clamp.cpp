@@ -36,26 +36,17 @@ public:
                   ConversionPatternRewriter &rewriter) const override {
 
     auto resultType = op.getResult().getType().cast<RankedTensorType>();
-    ValueRange inputs{op.getInput()};
+    auto input = op.getInput();
 
     auto rank = resultType.getRank();
-    auto affineMaps = llvm::map_to_vector(inputs, [&](Value operand) {
-      auto shape = cast<ShapedType>(operand.getType()).getShape();
-      SmallVector<AffineExpr> affineExprs;
-      for (auto it : llvm::enumerate(shape)) {
-        auto affineExpr = it.value() == 1
-                              ? rewriter.getAffineConstantExpr(0)
-                              : rewriter.getAffineDimExpr(it.index());
-        affineExprs.push_back(affineExpr);
-      }
-      return AffineMap::get(rank, 0, affineExprs, rewriter.getContext());
-    });
+    llvm::SmallVector<AffineMap> affineMaps;
+    affineMaps.push_back(rewriter.getMultiDimIdentityMap(rank));
     affineMaps.push_back(rewriter.getMultiDimIdentityMap(rank));
 
     llvm::SmallVector<utils::IteratorType> iters(rank,
                                                  utils::IteratorType::parallel);
     auto linalgOp = rewriter.create<linalg::GenericOp>(
-        op.getLoc(), resultType, inputs, inputs, affineMaps, iters,
+        op.getLoc(), resultType, input, input, affineMaps, iters,
         [&](OpBuilder &opBuilder, Location loc, ValueRange blockArgs) {
           Value opResult =
               createLinalgBodyForClamp(opBuilder, loc, blockArgs.front(),
