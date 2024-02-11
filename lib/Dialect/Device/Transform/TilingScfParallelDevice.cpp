@@ -9,20 +9,20 @@ using namespace mlir;
 
 namespace multi_device {
 namespace device {
-#define GEN_PASS_DEF_TILINGAFFINEFORDEVICE
+#define GEN_PASS_DEF_TILINGSCFPARALLELDEVICE
 #include "multi-device-model-compiler/Dialect/Device/Transform/Passes.h.inc"
 } // namespace device
 } // namespace multi_device
 
 namespace {
-class TilingAffineForDevicePass final
-    : public multi_device::device::impl::TilingAffineForDeviceBase<
-          TilingAffineForDevicePass> {
+class TilingScfParallelDevicePass final
+    : public multi_device::device::impl::TilingScfParallelDeviceBase<
+          TilingScfParallelDevicePass> {
 public:
-  using TilingAffineForDeviceBase::TilingAffineForDeviceBase;
-  TilingAffineForDevicePass(
-      const multi_device::device::TilingAffineForDeviceOptions &options)
-      : TilingAffineForDeviceBase(options) {}
+  using TilingScfParallelDeviceBase::TilingScfParallelDeviceBase;
+  TilingScfParallelDevicePass(
+      const multi_device::device::TilingScfParallelDeviceOptions &options)
+      : TilingScfParallelDeviceBase(options) {}
   void runOnOperation() override final;
 };
 } // namespace
@@ -82,7 +82,7 @@ void TilingParallelOp(scf::ParallelOp parallel, int64_t totalTilingSize) {
   scf::tileParallelLoop(parallel, tilingDims, false);
 }
 
-void TilingAffineForDevicePass::runOnOperation() {
+void TilingScfParallelDevicePass::runOnOperation() {
   auto moduleOp = getOperation();
   moduleOp.walk([&](scf::ParallelOp parallel) {
     if (mlir::isa<scf::ParallelOp>(parallel->getParentOp())) {
