@@ -4,7 +4,8 @@ AsyncDependencyConvert.cpp
 OffloadingLLVMToGPU.cpp 
 EliminateGPUMemrefSpace.cpp
 TilingScfParallelDevice.cpp
-BufferizeOpWithAnalysis.cpp)
+BufferizeOpWithAnalysis.cpp
+VectorizeAffineForDevice.cpp)
 
 add_dependencies(MultiDeviceDevicePass MultiDeviceDevicePassIncGen)
 

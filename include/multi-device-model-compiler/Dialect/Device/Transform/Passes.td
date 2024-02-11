@@ -82,4 +82,15 @@ def BufferizeOpWithAnalysis:Pass<"bufferize-op-with-analysis","mlir::ModuleOp"> 
     }];
 }
 
+def VectorizeAffineForDevice:Pass<"vectorize-affine-for-device","mlir::ModuleOp"> {
+    let summary = "Vectorize affine for in different ways,try to find better vector size.";
+    let description=[{
+        This pass will vectorize affine.for op, which will try to utilize inner-most for in cpu mode,
+        will try to utilize tensor core for async device(like gpu)
+    }];
+    let options= [
+        Option<"tensorCoreMode","tensor-core-mode","bool","false","vectorize in tensor core mode">,
+    ];
+}
+
 #endif // MULTI_DEVICE_MODEL_COMPILER_DIALECT_DEVICE_TRANSFORM_
