@@ -6,6 +6,7 @@
 #include "tpu_mlir/Dialect/Top/Transforms/Passes.h"
 #include "tpu_mlir/Dialect/Tpu/Transforms/Passes.h"
 
+#include "mlir/Dialect/Tosa/Transforms/Passes.h"
 #include "mlir/Transforms/Passes.h"
 
 void multi_device::pipelines::createMLIRToTPUPipeline(mlir::OpPassManager &pm) {
@@ -14,6 +15,7 @@ void multi_device::pipelines::createMLIRToTPUPipeline(mlir::OpPassManager &pm) {
   pm.addPass(
       multi_device::device::createAddDeviceTypeToFuncPass(deviceOptions));
   pm.addPass(multi_device::createEliminateEntryPointPass());
+  pm.addPass(mlir::tosa::createTosaLayerwiseConstantFoldPass());
   pm.addPass(multi_device::createTosaLowerToTPU());
   pm.addPass(mlir::createCanonicalizerPass());
   pm.addPass(top::createInitPass());

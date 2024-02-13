@@ -74,11 +74,6 @@ void multi_device::pipelines::createMLIRToCPUPipeline(mlir::OpPassManager &pm) {
   pm.addPass(mlir::affine::createAffineExpandIndexOpsPass());
   pm.addPass(mlir::affine::createSimplifyAffineStructuresPass());
   pm.addPass(mlir::affine::createLoopFusionPass(0, 0, true));
-  // auto affineVecConfig = mlir::affine::AffineVectorizeOptions();
-  // std::vector<int64_t> vecSizes{32}, testFastestSizes{0};
-  // affineVecConfig.vectorSizes = vecSizes;
-  // affineVecConfig.fastestVaryingPattern = testFastestSizes;
-  // pm.addPass(mlir::affine::createAffineVectorize(affineVecConfig));
   pm.addPass(multi_device::device::createVectorizeAffineForDevice());
   pm.addPass(mlir::affine::createLoopCoalescingPass());
   pm.addPass(mlir::affine::createAffineLoopNormalizePass());

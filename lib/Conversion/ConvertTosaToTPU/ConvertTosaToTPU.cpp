@@ -28,6 +28,16 @@ void populateTosaToTPUConversionPattern(ConversionTarget &target,
                                                             TypeConverter, ctx);
   conversion::populateTosaTensorToTPUConversionPattern(target, patterns,
                                                        TypeConverter, ctx);
+  conversion::populateTosaMatmulToTPUConversionPattern(target, patterns,
+                                                       TypeConverter, ctx);
+}
+
+void populateTosaFuseToTPUConversionPattern(ConversionTarget &target,
+                                            RewritePatternSet &patterns,
+                                            TypeConverter &TypeConverter,
+                                            MLIRContext &ctx) {
+  conversion::populateTosaFuseElementWiseToTPUConversionPattern(
+      target, patterns, TypeConverter, ctx);
 }
 
 namespace {
@@ -141,8 +151,8 @@ void TosaLoweringToTPUPass::runOnOperation() {
   replaceFuncInput(getOperation());
   saveWeights(getOperation());
   MLIRContext &context = getContext();
-  RewritePatternSet patterns(&context);
-  ConversionTarget target(context);
+  RewritePatternSet patterns(&context), fusePatterns(&context);
+  ConversionTarget target(context), fuseTarget(context);
 
   TypeConverter typeConverter;
   typeConverter.addConversion([](Type type) -> std::optional<Type> {
@@ -169,11 +179,24 @@ void TosaLoweringToTPUPass::runOnOperation() {
 
   target.addLegalDialect<func::FuncDialect, top::TopDialect, tpu::TpuDialect>();
   target.addIllegalDialect<tosa::TosaDialect>();
+  target.addLegalOp<tosa::ReshapeOp, tosa::ClampOp>();
 
   populateTosaToTPUConversionPattern(target, patterns, typeConverter, context);
 
-  if (failed(applyPartialConversion(getOperation(), target,
-                                    std::move(patterns)))) {
+  if (failed(
+          applyFullConversion(getOperation(), target, std::move(patterns)))) {
+    signalPassFailure();
+  }
+
+  fuseTarget
+      .addLegalDialect<func::FuncDialect, top::TopDialect, tpu::TpuDialect>();
+  fuseTarget.addIllegalDialect<tosa::TosaDialect>();
+
+  populateTosaFuseToTPUConversionPattern(fuseTarget, fusePatterns,
+                                         typeConverter, context);
+
+  if (failed(applyFullConversion(getOperation(), fuseTarget,
+                                 std::move(fusePatterns)))) {
     signalPassFailure();
   }
 }

@@ -10,7 +10,13 @@ namespace multi_device {
 #define GEN_PASS_DECL_TOSALOWERTOTPU
 #include "multi-device-model-compiler/Conversion/Passes.h.inc"
 namespace conversion {
+void populateTosaMatmulToTPUConversionPattern(
+    mlir::ConversionTarget &target, mlir::RewritePatternSet &patterns,
+    mlir::TypeConverter &TypeConverter, mlir::MLIRContext &ctx);
 void populateTosaElementWiseToTPUConversionPattern(
+    mlir::ConversionTarget &target, mlir::RewritePatternSet &patterns,
+    mlir::TypeConverter &TypeConverter, mlir::MLIRContext &ctx);
+void populateTosaFuseElementWiseToTPUConversionPattern(
     mlir::ConversionTarget &target, mlir::RewritePatternSet &patterns,
     mlir::TypeConverter &TypeConverter, mlir::MLIRContext &ctx);
 void populateTosaTensorToTPUConversionPattern(
