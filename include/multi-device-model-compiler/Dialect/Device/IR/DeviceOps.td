@@ -6,6 +6,7 @@ include "multi-device-model-compiler/Dialect/Device/IR/DeviceBase.td"
 include "mlir/IR/OpBase.td"
 include "mlir/IR/Interfaces.td"
 include "mlir/IR/SymbolInterfaces.td"
+include "mlir/Interfaces/SideEffectInterfaces.td"
 include "mlir/Dialect/GPU/IR/GPUBase.td"
 
 class Device_Op<string mnemonic,list<Trait> traits=[]> :
@@ -41,6 +42,28 @@ def Device_RecordOp : Device_Op<"record"> {
     let assemblyFormat = [{
         `async` ` ` `[` $src `->` $dst `]` attr-dict
     }];
+}
+
+def TensorOrMemref :
+  AnyTypeOf<[AnyMemRef, AnyRankedTensor], "", "::mlir::ShapedType">;
+
+def Device_MatmulOp : Device_Op<"matmul",[
+    DeclareOpInterfaceMethods<MemoryEffectsOpInterface>,
+    ]> {
+    let summary = "Matmul op for device to different func call.";
+    let description = [{
+        Use different methods to accerlate compute.
+    }];
+
+    let arguments = (ins
+        TensorOrMemref:$input,
+        TensorOrMemref:$weight,
+        TensorOrMemref:$bias);
+
+    let results = (outs
+        TensorOrMemref:$output);
+
+    let hasVerifier = 1;
 }
 
 #endif // MULTI_DEVICE_MODEL_COMPILER_DIALECT_DEVICE_OPS_

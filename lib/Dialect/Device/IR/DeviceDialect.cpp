@@ -61,71 +61,54 @@ static void printAsyncDependencies(OpAsmPrinter &printer, Operation *op,
 } // namespace
 
 //===----------------------------------------------------------------------===//
-// Device_WaitOp
+// Device_MatmulOp
 //===----------------------------------------------------------------------===//
 
-// namespace {
+LogicalResult MatmulOp::verify() {
+  auto inputShape = getInput().getType().getShape(),
+       weightShape = getWeight().getType().getShape(),
+       biasShape = getBias().getType().getShape(),
+       outputShape = getOutput().getType().getShape();
+  if (weightShape.size() != 2 || inputShape.back() != weightShape[0]) {
+    return failure();
+  }
+  if (biasShape.back() != weightShape[1]) {
+    return failure();
+  }
+  if (biasShape.size() > 1) {
+    for (auto shape : biasShape.drop_back()) {
+      if (shape != 1) {
+        return failure();
+      }
+    }
+  }
+  if (inputShape.size() != outputShape.size() ||
+      outputShape.back() != weightShape.back()) {
+    return failure();
+  }
+  for (auto [input, output] :
+       llvm::zip(inputShape.drop_back(), outputShape.drop_back())) {
+    if (input != output) {
+      return failure();
+    }
+  }
+  return success();
+}
 
-// struct EraseRedundantDeviceWaitOpPairs : public OpRewritePattern<WaitOp> {
-// public:
-//   using OpRewritePattern::OpRewritePattern;
+void MatmulOp::getEffects(
+    llvm::SmallVectorImpl<SideEffects::EffectInstance<MemoryEffects::Effect>>
+        &effects) {
+  for (auto operand : getOperands()) {
+    if (operand.getType().isa<MemRefType>()) {
+      effects.emplace_back(MemoryEffects::Read::get(), operand);
+    }
+  }
 
-//   LogicalResult matchAndRewrite(WaitOp op,
-//                                 PatternRewriter &rewriter) const final {
-//     auto predicate = [](Value value) {
-//       auto waitOp = value.getDefiningOp<WaitOp>();
-//       return waitOp && waitOp->getNumOperands() == 0;
-//     };
-//     if (llvm::none_of(op.getAsyncDependencies(), predicate))
-//       return failure();
-//     SmallVector<Value> validOperands;
-//     for (Value operand : op->getOperands()) {
-//       if (predicate(operand))
-//         continue;
-//       validOperands.push_back(operand);
-//     }
-//     rewriter.updateRootInPlace(op, [&]() { op->setOperands(validOperands);
-//     }); return success();
-//   }
-// };
-
-// struct SimplifyDeviceWaitOp : public OpRewritePattern<WaitOp> {
-// public:
-//   using OpRewritePattern::OpRewritePattern;
-
-//   LogicalResult matchAndRewrite(WaitOp op,
-//                                 PatternRewriter &rewriter) const final {
-//     // Erase device.wait ops that neither have any async dependencies nor
-//     return
-//     // any async token.
-//     if (op.getAsyncDependencies().empty() && !op.getAsyncToken()) {
-//       rewriter.eraseOp(op);
-//       return success();
-//     }
-//     // Replace uses of %t1 = device.wait async [%t0] ops with %t0 and erase
-//     the
-//     // op.
-//     if (llvm::hasSingleElement(op.getAsyncDependencies()) &&
-//         op.getAsyncToken()) {
-//       rewriter.replaceOp(op, op.getAsyncDependencies());
-//       return success();
-//     }
-//     // Erase %t = device.wait async ... ops, where %t has no uses.
-//     if (op.getAsyncToken() && op.getAsyncToken().use_empty()) {
-//       rewriter.eraseOp(op);
-//       return success();
-//     }
-//     return failure();
-//   }
-// };
-
-// } // end anonymous namespace
-
-// void WaitOp::getCanonicalizationPatterns(RewritePatternSet &results,
-//                                          MLIRContext *context) {
-//   results.add<EraseRedundantDeviceWaitOpPairs,
-//   SimplifyDeviceWaitOp>(context);
-// }
+  auto output = getOutput();
+  if (output.getType().isa<MemRefType>()) {
+    effects.emplace_back(MemoryEffects::Write::get(), output);
+  }
+}
 
 #include "multi-device-model-compiler/Dialect/Device/IR/DeviceOpsEnums.cpp.inc"
 
