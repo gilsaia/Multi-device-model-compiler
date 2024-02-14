@@ -178,25 +178,25 @@ void TosaLoweringToTPUPass::runOnOperation() {
   });
 
   target.addLegalDialect<func::FuncDialect, top::TopDialect, tpu::TpuDialect>();
-  target.addIllegalDialect<tosa::TosaDialect>();
-  target.addLegalOp<tosa::ReshapeOp, tosa::ClampOp>();
+  target.addLegalOp<tosa::ReshapeOp, tosa::TransposeOp>();
+  target.addIllegalOp<tosa::FullyConnectedOp, tosa::AddOp, tosa::ConstOp>();
 
   populateTosaToTPUConversionPattern(target, patterns, typeConverter, context);
 
-  if (failed(
-          applyFullConversion(getOperation(), target, std::move(patterns)))) {
+  if (failed(applyPartialConversion(getOperation(), target,
+                                    std::move(patterns)))) {
     signalPassFailure();
   }
 
   fuseTarget
       .addLegalDialect<func::FuncDialect, top::TopDialect, tpu::TpuDialect>();
-  fuseTarget.addIllegalDialect<tosa::TosaDialect>();
+  fuseTarget.addIllegalOp<tosa::ClampOp>();
 
   populateTosaFuseToTPUConversionPattern(fuseTarget, fusePatterns,
                                          typeConverter, context);
 
-  if (failed(applyFullConversion(getOperation(), fuseTarget,
-                                 std::move(fusePatterns)))) {
+  if (failed(applyPartialConversion(getOperation(), fuseTarget,
+                                    std::move(fusePatterns)))) {
     signalPassFailure();
   }
 }

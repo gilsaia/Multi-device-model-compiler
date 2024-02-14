@@ -48,7 +48,7 @@ public:
     attrs.emplace_back(
         rewriter.getNamedAttr("output_transpose", rewriter.getBoolAttr(false)));
     attrs.emplace_back(
-        rewriter.getNamedAttr("right_transpose", rewriter.getBoolAttr(false)));
+        rewriter.getNamedAttr("right_transpose", rewriter.getBoolAttr(true)));
 
     llvm::SmallVector<Value> args = {input, op.getWeight(), op.getBias()};
     ValueRange operands(args);
