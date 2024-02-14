@@ -1,0 +1,9 @@
+add_library(ConvertTosaToDevice STATIC 
+ConvertTosaToDevice.cpp
+Matmul.cpp)
+add_dependencies(ConvertTosaToDevice MultiDeviceConversionPassIncGen)
+target_link_libraries(ConvertTosaToDevice PUBLIC
+MLIRTosaDialect MLIRLinalgDialect MLIRTensorDialect MLIRArithDialect
+MultiDeviceDeviceDialect
+MLIRIR MLIRTransforms
+ConvertTosaToLinalgSaveTensor)

@@ -1,3 +1,4 @@
+#include "multi-device-model-compiler/Dialect/Device/IR/Device.h"
 #include "multi-device-model-compiler/Dialect/Device/Transform/Passes.h"
 
 #include "mlir/Dialect/Bufferization/IR/Bufferization.h"
@@ -25,8 +26,11 @@ class BufferizeOpWithAnalysisPass final
   void runOnOperation() override final;
   void getDependentDialects(DialectRegistry &registry) const override {
     registry.insert<bufferization::BufferizationDialect, memref::MemRefDialect,
-                    tensor::TensorDialect, linalg::LinalgDialect>();
+                    tensor::TensorDialect, linalg::LinalgDialect,
+                    multi_device::device::DeviceDialect>();
     linalg::registerBufferizableOpInterfaceExternalModels(registry);
+    multi_device::device::registerBufferizableOpInterfaceExternalModels(
+        registry);
   }
 };
 } // namespace
@@ -34,7 +38,8 @@ class BufferizeOpWithAnalysisPass final
 void BufferizeOpWithAnalysisPass::runOnOperation() {
   bufferization::BufferizationOptions options =
       bufferization::getPartialBufferizationOptions();
-  options.opFilter.allowDialect<linalg::LinalgDialect>();
+  options.opFilter.allowDialect<linalg::LinalgDialect,
+                                multi_device::device::DeviceDialect>();
   if (failed(bufferization::bufferizeOp(getOperation(), options, false))) {
     signalPassFailure();
   }

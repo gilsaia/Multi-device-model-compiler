@@ -18,6 +18,9 @@ createAddDeviceTypeToFuncPass();
 std::unique_ptr<mlir::OperationPass<mlir::ModuleOp>>
 createAddDeviceTypeToFuncPass(const AddDeviceTypeToFuncOptions &type);
 
+void registerBufferizableOpInterfaceExternalModels(
+    mlir::DialectRegistry &registry);
+
 #define GEN_PASS_REGISTRATION
 #include "multi-device-model-compiler/Dialect/Device/Transform/Passes.h.inc"
 } // namespace device

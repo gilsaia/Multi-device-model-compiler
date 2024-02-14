@@ -5,7 +5,8 @@ OffloadingLLVMToGPU.cpp
 EliminateGPUMemrefSpace.cpp
 TilingScfParallelDevice.cpp
 BufferizeOpWithAnalysis.cpp
-VectorizeAffineForDevice.cpp)
+VectorizeAffineForDevice.cpp
+BufferizeOpInterfaceImpl.cpp)
 
 add_dependencies(MultiDeviceDevicePass MultiDeviceDevicePassIncGen)
 

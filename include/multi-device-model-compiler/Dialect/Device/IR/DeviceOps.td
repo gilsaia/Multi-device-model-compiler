@@ -44,9 +44,6 @@ def Device_RecordOp : Device_Op<"record"> {
     }];
 }
 
-def TensorOrMemref :
-  AnyTypeOf<[AnyMemRef, AnyRankedTensor], "", "::mlir::ShapedType">;
-
 def Device_MatmulOp : Device_Op<"matmul",[
     DeclareOpInterfaceMethods<MemoryEffectsOpInterface>,
     ]> {
@@ -56,14 +53,20 @@ def Device_MatmulOp : Device_Op<"matmul",[
     }];
 
     let arguments = (ins
-        TensorOrMemref:$input,
-        TensorOrMemref:$weight,
-        TensorOrMemref:$bias);
-
-    let results = (outs
-        TensorOrMemref:$output);
+        AnyShaped:$input,
+        AnyShaped:$weight,
+        AnyShaped:$bias,
+        AnyShaped:$output);
 
     let hasVerifier = 1;
+    let assemblyFormat = [{
+        `{` 
+        `input` $input `:` type($input)
+        `weight` $weight `:` type($weight) 
+        `bias` $bias `:` type($bias)
+        `output` $output `:` type($output)
+        `}` attr-dict
+    }];
 }
 
 #endif // MULTI_DEVICE_MODEL_COMPILER_DIALECT_DEVICE_OPS_

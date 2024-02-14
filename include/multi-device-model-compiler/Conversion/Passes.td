@@ -78,6 +78,15 @@ def TosaLowerToLinalgSaveTensor: Pass<"convert-tosa-to-linalg-save-tensor","mlir
        ];
 }
 
+def TosaLowerToDevice: Pass<"convert-tosa-to-device","mlir::ModuleOp"> {
+       let summary = "Lower tosa op to device op,with specific op accerlate.";
+       let dependentDialects = [
+              "multi_device::device::DeviceDialect",
+              "mlir::tensor::TensorDialect",
+              "mlir::tosa::TosaDialect",
+       ];
+}
+
 def FrontendToTosaLoweringFix: Pass<"convert-onnx-to-tosa-fix","mlir::ModuleOp"> {
        let summary="Lower frontend ops to TOSA dialect with dialect registry.";
        let dependentDialects = [

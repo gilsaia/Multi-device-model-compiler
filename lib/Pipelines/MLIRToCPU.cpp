@@ -38,6 +38,8 @@ void multi_device::pipelines::createMLIRToCPUPipeline(mlir::OpPassManager &pm) {
   pm.addPass(mlir::tosa::createTosaMakeBroadcastablePass());
   pm.addPass(mlir::tosa::createTosaInferShapesPass());
   pm.addPass(mlir::tosa::createTosaValidationPass());
+
+  pm.addPass(multi_device::createTosaLowerToDevice());
   pm.addPass(multi_device::createTosaLowerToLinalgSaveTensor());
   pm.addNestedPass<mlir::func::FuncOp>(mlir::tosa::createTosaToLinalgNamed());
   pm.addPass(mlir::tosa::createTosaLayerwiseConstantFoldPass());

@@ -98,16 +98,10 @@ LogicalResult MatmulOp::verify() {
 void MatmulOp::getEffects(
     llvm::SmallVectorImpl<SideEffects::EffectInstance<MemoryEffects::Effect>>
         &effects) {
-  for (auto operand : getOperands()) {
-    if (operand.getType().isa<MemRefType>()) {
-      effects.emplace_back(MemoryEffects::Read::get(), operand);
-    }
-  }
-
-  auto output = getOutput();
-  if (output.getType().isa<MemRefType>()) {
-    effects.emplace_back(MemoryEffects::Write::get(), output);
-  }
+  effects.emplace_back(MemoryEffects::Read::get(), getInput());
+  effects.emplace_back(MemoryEffects::Read::get(), getWeight());
+  effects.emplace_back(MemoryEffects::Read::get(), getBias());
+  effects.emplace_back(MemoryEffects::Write::get(), getOutput());
 }
 
 #include "multi-device-model-compiler/Dialect/Device/IR/DeviceOpsEnums.cpp.inc"
