@@ -101,6 +101,10 @@ void multi_device::pipelines::createMLIRToCPUPipeline(mlir::OpPassManager &pm) {
       mlir::createFinalizeMemRefToLLVMConversionPass(memrefToLLVMConfig));
   auto funcToLLVMConfig = mlir::ConvertFuncToLLVMPassOptions();
   pm.addPass(mlir::createConvertFuncToLLVMPass(funcToLLVMConfig));
+  auto deviceToLLVMConfig = multi_device::ConvertDeviceToLLVMOptions();
+  deviceToLLVMConfig.hostBarePtrCallConv = true;
+  deviceToLLVMConfig.kernelBarePtrCallConv = true;
+  pm.addPass(multi_device::createConvertDeviceToLLVM(deviceToLLVMConfig));
   pm.addPass(mlir::createReconcileUnrealizedCastsPass());
   pm.addPass(multi_device::createEliminateEntryPointPass());
 }

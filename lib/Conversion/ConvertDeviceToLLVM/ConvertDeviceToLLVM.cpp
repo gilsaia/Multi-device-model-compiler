@@ -42,6 +42,11 @@ void ConvertDeviceToLLVMPass::runOnOperation() {
   RewritePatternSet patterns(&getContext());
   LLVMConversionTarget target(getContext());
 
+  ModuleOp moduleOp = getOperation();
+  auto device = moduleOp->getAttr("module.device")
+                    .cast<multi_device::device::DeviceTypeAttr>()
+                    .getValue();
+
   SymbolTable symbolTable = SymbolTable(getOperation());
   // Preserve GPU modules if they have target attributes.
   target.addDynamicallyLegalOp<gpu::GPUModuleOp>(
@@ -70,7 +75,7 @@ void ConvertDeviceToLLVMPass::runOnOperation() {
   populateGpuToLLVMConversionPatterns(converter, patterns, gpuBinaryAnnotation,
                                       kernelBarePtrCallConv, &symbolTable);
   multi_device::conversion::populateDeviceToLLVMConversionPatterns(
-      converter, patterns, &symbolTable);
+      converter, patterns, &symbolTable, device);
 
   if (failed(
           applyPartialConversion(getOperation(), target, std::move(patterns))))
@@ -91,6 +96,17 @@ public:
       this->getTypeConverter()->getPointerType(IntegerType::get(context, 8));
   Type llvmPointerPointerType =
       this->getTypeConverter()->getPointerType(llvmPointerType);
+  Type llvmInt8Type = IntegerType::get(context, 8);
+  Type llvmInt16Type = IntegerType::get(context, 16);
+  Type llvmInt32Type = IntegerType::get(context, 32);
+  Type llvmInt64Type = IntegerType::get(context, 64);
+  Type llvmFloat32Type = Float32Type::get(context);
+  Type llvmInt8PointerType =
+      this->getTypeConverter()->getPointerType(llvmInt8Type);
+  Type llvmInt64PointerType =
+      this->getTypeConverter()->getPointerType(llvmInt64Type);
+  Type llvmIntPtrType = IntegerType::get(
+      context, this->getTypeConverter()->getPointerBitwidth(0));
   FunctionCallBuilder streamCreateCallBuilder = {
       "mgpuStreamCreate", llvmPointerType /* void *stream */, {}};
   FunctionCallBuilder streamDestroyCallBuilder = {
@@ -119,6 +135,22 @@ public:
       "mgpuEventRecord",
       llvmVoidType,
       {llvmPointerType /* void *event */, llvmPointerType /* void *stream */}};
+
+  /*
+  Ops Function Call
+  */
+  FunctionCallBuilder cpuMatmulCallBuilder = {
+      "mcpuMatmul",
+      llvmVoidType,
+      {llvmPointerType /* input */, llvmPointerType /* weight */,
+       llvmPointerType /* bias */, llvmPointerType /* output */,
+       llvmInt64Type /* M */, llvmInt64Type /* N */, llvmInt64Type /* K */}};
+  FunctionCallBuilder gpuMatmulCallBuilder = {
+      "mgpuMatmul",
+      llvmVoidType,
+      {llvmPointerType /* input */, llvmPointerType /* weight */,
+       llvmPointerType /* bias */, llvmPointerType /* output */,
+       llvmInt64Type /* M */, llvmInt64Type /* N */, llvmInt64Type /* K */}};
 
 protected:
   SymbolTable *cachedModuleTable;
@@ -165,6 +197,24 @@ private:
   LogicalResult
   matchAndRewrite(multi_device::device::RecordOp recordOp, OpAdaptor adaptor,
                   ConversionPatternRewriter &rewriter) const override;
+};
+
+class ConvertMatmulOpToDeviceRuntimeCallPattern
+    : public ConvertOpToDeviceRuntimeCallPattern<
+          multi_device::device::MatmulOp> {
+public:
+  ConvertMatmulOpToDeviceRuntimeCallPattern(
+      const LLVMTypeConverter &typeConverter, SymbolTable *cachedModuleTable,
+      multi_device::device::DeviceType device)
+      : ConvertOpToDeviceRuntimeCallPattern<multi_device::device::MatmulOp>(
+            typeConverter, cachedModuleTable),
+        device(device) {}
+  LogicalResult
+  matchAndRewrite(multi_device::device::MatmulOp matmulOp, OpAdaptor adaptor,
+                  ConversionPatternRewriter &rewriter) const override;
+
+private:
+  multi_device::device::DeviceType device;
 };
 
 static LLVM::CallOp getEventByStream(Value stream) {
@@ -243,11 +293,48 @@ LogicalResult ConvertRecordOpToDeviceRuntimeCallPattern::matchAndRewrite(
   return success();
 }
 
+LogicalResult ConvertMatmulOpToDeviceRuntimeCallPattern::matchAndRewrite(
+    multi_device::device::MatmulOp matmulOp, OpAdaptor adaptor,
+    ConversionPatternRewriter &rewriter) const {
+  int64_t m = 1, n = 1, k = 1;
+  auto inputShape = matmulOp.getInput().getType().getShape(),
+       weightShape = matmulOp.getWeight().getType().getShape();
+  for (auto &shape : inputShape.drop_back()) {
+    m *= shape;
+  }
+  k = inputShape.back(), n = weightShape.back();
+
+  auto loc = matmulOp.getLoc();
+  Value mVal = rewriter.create<LLVM::ConstantOp>(loc, llvmInt64Type, m),
+        kVal = rewriter.create<LLVM::ConstantOp>(loc, llvmInt64Type, k),
+        nVal = rewriter.create<LLVM::ConstantOp>(loc, llvmInt64Type, n);
+
+  llvm::SmallVector<Value, 4> arguments = getTypeConverter()->promoteOperands(
+      loc, matmulOp.getOperands(), adaptor.getOperands(), rewriter, true);
+
+  if (device == multi_device::device::DeviceType::CPU) {
+    cpuMatmulCallBuilder.create(loc, rewriter,
+                                {arguments[0], arguments[1], arguments[2],
+                                 arguments[3], mVal, nVal, kVal});
+  } else if (device == multi_device::device::DeviceType::GPU) {
+    gpuMatmulCallBuilder.create(loc, rewriter,
+                                {arguments[0], arguments[1], arguments[2],
+                                 arguments[3], mVal, nVal, kVal});
+  } else {
+    return rewriter.notifyMatchFailure(matmulOp, "Wrong device");
+  }
+
+  rewriter.eraseOp(matmulOp);
+  return success();
+}
+
 void multi_device::conversion::populateDeviceToLLVMConversionPatterns(
     mlir::LLVMTypeConverter &converter, mlir::RewritePatternSet &patterns,
-    mlir::SymbolTable *cachedModuleTable) {
+    mlir::SymbolTable *cachedModuleTable, device::DeviceType device) {
   patterns.add<ConvertWaitOpToDeviceRuntimeCallPattern,
                ConvertWaitAsyncOpToDeviceRuntimeCallPattern,
                ConvertRecordOpToDeviceRuntimeCallPattern>(converter,
                                                           cachedModuleTable);
+  patterns.add<ConvertMatmulOpToDeviceRuntimeCallPattern>(
+      converter, cachedModuleTable, device);
 }

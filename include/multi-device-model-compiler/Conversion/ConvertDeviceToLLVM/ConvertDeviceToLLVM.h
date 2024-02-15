@@ -1,6 +1,8 @@
 #ifndef MULTI_DEVICE_MODEL_COMPILER_CONVERSION_CONVERTDEVICETOLLVM_H_
 #define MULTI_DEVICE_MODEL_COMPILER_CONVERSION_CONVERTDEVICETOLLVM_H_
 
+#include "multi-device-model-compiler/Dialect/Device/IR/Device.h"
+
 #include "mlir/Conversion/LLVMCommon/TypeConverter.h"
 #include "mlir/Dialect/GPU/IR/GPUDialect.h"
 #include "mlir/Dialect/GPU/Transforms/Utils.h"
@@ -16,7 +18,8 @@ namespace multi_device {
 namespace conversion {
 void populateDeviceToLLVMConversionPatterns(
     mlir::LLVMTypeConverter &converter, mlir::RewritePatternSet &patterns,
-    mlir::SymbolTable *cachedModuleTable = nullptr);
+    mlir::SymbolTable *cachedModuleTable = nullptr,
+    device::DeviceType type = device::DeviceType::CPU);
 }
 } // namespace multi_device
 
