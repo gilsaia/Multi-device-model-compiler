@@ -1,0 +1,4 @@
+add_library(MultiDeviceCPUOps SHARED Ops.cpp)
+target_link_libraries(MultiDeviceCPUOps PUBLIC
+LLVMSupport
+dnnl)

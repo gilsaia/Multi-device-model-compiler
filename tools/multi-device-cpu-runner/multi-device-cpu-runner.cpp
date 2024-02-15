@@ -1,3 +1,4 @@
+#include "multi-device-model-compiler/Kernels/CPU/Ops.h"
 #include "multi-device-model-compiler/Runtime/ModelInfo.h"
 #include "multi-device-model-compiler/Runtime/RuntimeUtil.h"
 #include "multi-device-model-compiler/Runtime/TensorDescripter.h"
@@ -43,6 +44,8 @@ int main(int argc, char **argv) {
     llvm::errs() << "Failed to parse options\n";
     return 1;
   }
+
+  cpuOpsInit();
 
   ModelInfo *info = ModelInfo::ParseModelInfo();
   auto params = GetParamsVec(info);

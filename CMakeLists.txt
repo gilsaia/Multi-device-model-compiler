@@ -58,6 +58,7 @@ set(DNNL_BUILD_EXAMPLES OFF)
 set(DNNL_BUILD_TESTS OFF)
 add_subdirectory(3rdparty/oneDNN)
 include_directories(3rdparty/oneDNN/include)
+include_directories(${CMAKE_BINARY_DIR}/3rdparty/oneDNN/include)
 
 # TPU-mlir Configure
 add_subdirectory(3rdparty/tpu-mlir)

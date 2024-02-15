@@ -2,8 +2,9 @@ add_subdirectory(Dialect)
 add_subdirectory(Conversion)
 add_subdirectory(Pass)
 add_subdirectory(Pipelines)
-add_subdirectory(Runtime)
 add_subdirectory(Utils)
+add_subdirectory(Kernels)
+add_subdirectory(Runtime)
 
 add_library(MultiDeviceInitUtils STATIC InitUtils.cpp)
 target_link_libraries(MultiDeviceInitUtils PUBLIC OMONNXRewrite OMShapeInferencePass 
