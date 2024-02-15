@@ -6,7 +6,7 @@
 #define MLIR_CPU_OPS_EXPORT
 #endif // _WIN32
 
-void cpuOpsInit();
+void cpuOpsInit(bool fastMathFlag = false);
 
 extern "C" {
 MLIR_CPU_OPS_EXPORT void mcpuMatmul(float *input, float *weight, float *bias,

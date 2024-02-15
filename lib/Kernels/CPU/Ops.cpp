@@ -6,6 +6,7 @@
 #include "llvm/ADT/DenseMapInfo.h"
 #include "llvm/ADT/Hashing.h"
 #include "llvm/ADT/SmallVector.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include <unordered_map>
 
@@ -38,42 +39,47 @@ using namespace dnnl;
 
 static engine cpuEngine;
 static stream cpuStream;
+static bool fastFlag;
 
-void cpuOpsInit() {
+void cpuOpsInit(bool fastMathFlag) {
   cpuEngine = engine(engine::kind::cpu, 0);
   cpuStream = stream(cpuEngine);
+  fastFlag = fastMathFlag;
 }
 
-static llvm::DenseMap<llvm::SmallVector<int64_t>, matmul::primitive_desc>
-    matmulMap;
+static llvm::DenseMap<llvm::SmallVector<int64_t>, matmul> matmulMap;
 
 extern "C" MLIR_CPU_OPS_EXPORT void mcpuMatmul(float *input, float *weight,
                                                float *bias, float *output,
                                                int64_t M, int64_t N,
                                                int64_t K) {
   llvm::SmallVector<int64_t> matmulKey{M, N, K};
-  matmul::primitive_desc matmulPd;
+  matmul matmulPrim;
 
-  memory::dims inputDims = {M, K}, weightDims = {K, N}, biasDims = {N},
+  memory::dims inputDims = {M, K}, weightDims = {K, N}, biasDims = {1, N},
                outputDims = {M, N};
   auto inputMd = memory::desc(inputDims, memory::data_type::f32,
                               memory::format_tag::ab),
        weightMd = memory::desc(weightDims, memory::data_type::f32,
                                memory::format_tag::ab),
        biasMd = memory::desc(biasDims, memory::data_type::f32,
-                             memory::format_tag::a),
+                             memory::format_tag::ab),
        outputMd = memory::desc(outputDims, memory::data_type::f32,
                                memory::format_tag::ab);
 
   if (matmulMap.count(matmulKey)) {
-    matmulPd = matmulMap[matmulKey];
+    matmulPrim = matmulMap[matmulKey];
   } else {
     primitive_attr matmulAttr;
-    matmulPd = matmul::primitive_desc(cpuEngine, inputMd, weightMd, biasMd,
-                                      outputMd, matmulAttr);
-    matmulMap.insert({matmulKey, matmulPd});
+    if (fastFlag) {
+      matmulAttr.set_fpmath_mode(fpmath_mode::any);
+    }
+    auto matmulPd = matmul::primitive_desc(cpuEngine, inputMd, weightMd, biasMd,
+                                           outputMd, matmulAttr);
+    matmulPrim = matmul(matmulPd);
+
+    matmulMap.insert({matmulKey, matmulPrim});
   }
-  auto matmulPrim = matmul(matmulPd);
 
   auto inputMem = memory(inputMd, cpuEngine, input),
        weightMem = memory(weightMd, cpuEngine, weight),

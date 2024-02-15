@@ -32,6 +32,10 @@ llvm::cl::opt<int> RerunTimes("rerun", llvm::cl::desc("Rerun time"),
                               llvm::cl::init(0), llvm::cl::ValueRequired,
                               llvm::cl::cat(MultiDeviceCpuRunnerOptions));
 
+llvm::cl::opt<bool> FastMode("fast",
+                             llvm::cl::desc("Fast mode,with precision loss"),
+                             llvm::cl::cat(MultiDeviceCpuRunnerOptions));
+
 using namespace multi_device;
 
 int main(int argc, char **argv) {
@@ -45,7 +49,7 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  cpuOpsInit();
+  cpuOpsInit(FastMode);
 
   ModelInfo *info = ModelInfo::ParseModelInfo();
   auto params = GetParamsVec(info);
