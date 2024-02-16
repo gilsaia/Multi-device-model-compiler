@@ -59,6 +59,11 @@ def AsyncDependencyConvert:Pass<"async-dependency-convert","mlir::func::FuncOp">
     let dependentDialects=["multi_device::device::DeviceDialect"];
 }
 
+def CombineGPUKernel:Pass<"combine-gpu-kernel","mlir::ModuleOp"> {
+    let summary="Combine different gpu kernel in one module,so we can use only one file to save it.";
+    let dependentDialects=["mlir::gpu::GPUDialect"];
+}
+
 def TilingScfParallelDevice:Pass<"tiling-scf-parallel-device","mlir::ModuleOp"> {
     let summary="Find a proper tiling size for scf-parallel loop,to best use device power.";
     let description=[{

@@ -7,7 +7,8 @@ TilingScfParallelDevice.cpp
 BufferizeOpWithAnalysis.cpp
 VectorizeAffineForDevice.cpp
 BufferizeOpInterfaceImpl.cpp
-CoalesceAffineForDevice.cpp)
+CoalesceAffineForDevice.cpp
+CombineGPUKernel.cpp)
 
 add_dependencies(MultiDeviceDevicePass MultiDeviceDevicePassIncGen)
 
