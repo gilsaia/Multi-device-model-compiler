@@ -64,6 +64,11 @@ def CombineGPUKernel:Pass<"combine-gpu-kernel","mlir::ModuleOp"> {
     let dependentDialects=["mlir::gpu::GPUDialect"];
 }
 
+def FoldGPUMemcpy:Pass<"fold-gpu-memcpy","mlir::ModuleOp"> {
+    let summary="Fold useless memcpy like gpu-cpu-gpu without change.";
+    let dependentDialects=["mlir::gpu::GPUDialect","mlir::memref::MemRefDialect"];
+}
+
 def TilingScfParallelDevice:Pass<"tiling-scf-parallel-device","mlir::ModuleOp"> {
     let summary="Find a proper tiling size for scf-parallel loop,to best use device power.";
     let description=[{
