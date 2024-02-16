@@ -1,6 +1,7 @@
 #include "multi-device-model-compiler/Conversion/ConvertDeviceToLLVM/ConvertDeviceToLLVM.h"
 #include "multi-device-model-compiler/Conversion/ConvertGPUToNVVM/ConvertGPUToNVVM.h"
 #include "multi-device-model-compiler/Conversion/ConvertMemrefToGPU/ConvertMemrefToGPU.h"
+#include "multi-device-model-compiler/Conversion/ConvertTosaToDevice/ConvertTosaToDevice.h"
 #include "multi-device-model-compiler/Conversion/ConvertTosaToLinalg/ConvertTosaToLinalgSaveTensor.h"
 #include "multi-device-model-compiler/Dialect/Device/Transform/Passes.h"
 #include "multi-device-model-compiler/Dialect/ONNX/Transform/Passes.h"
@@ -53,6 +54,7 @@ void multi_device::pipelines::createMLIRToGPUPipeline(mlir::OpPassManager &pm) {
   pm.addPass(mlir::tosa::createTosaInferShapesPass());
   pm.addPass(mlir::tosa::createTosaValidationPass());
 
+  pm.addPass(multi_device::createTosaLowerToDevice());
   pm.addPass(multi_device::createTosaLowerToLinalgSaveTensor());
   pm.addNestedPass<mlir::func::FuncOp>(mlir::tosa::createTosaToLinalgNamed());
   pm.addPass(mlir::tosa::createTosaLayerwiseConstantFoldPass());
@@ -90,6 +92,7 @@ void multi_device::pipelines::createMLIRToGPUPipeline(mlir::OpPassManager &pm) {
   pm.addPass(mlir::affine::createSimplifyAffineStructuresPass());
   pm.addPass(mlir::affine::createLoopFusionPass(0, 0, true));
   pm.addPass(mlir::affine::createAffineDataCopyGenerationPass(0, 1, 0));
+  pm.addPass(multi_device::device::createDeviceDataCopyGeneration());
   pm.addPass(mlir::affine::createLoopFusionPass(1, 0, true));
   //   pm.addPass(multi_device::device::createVectorizeAffineForDevice());
   //   pm.addPass(mlir::affine::createLoopCoalescingPass());

@@ -69,6 +69,11 @@ def FoldGPUMemcpy:Pass<"fold-gpu-memcpy","mlir::ModuleOp"> {
     let dependentDialects=["mlir::gpu::GPUDialect","mlir::memref::MemRefDialect"];
 }
 
+def DeviceDataCopyGeneration:Pass<"device-data-copy-generate","mlir::ModuleOp"> {
+    let summary="Generate data copy op in gpu mode for device ops.";
+    let dependentDialects=["mlir::gpu::GPUDialect","mlir::memref::MemRefDialect"];
+}
+
 def TilingScfParallelDevice:Pass<"tiling-scf-parallel-device","mlir::ModuleOp"> {
     let summary="Find a proper tiling size for scf-parallel loop,to best use device power.";
     let description=[{

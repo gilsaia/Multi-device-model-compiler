@@ -9,7 +9,8 @@ VectorizeAffineForDevice.cpp
 BufferizeOpInterfaceImpl.cpp
 CoalesceAffineForDevice.cpp
 CombineGPUKernel.cpp
-FoldGPUMemcpy.cpp)
+FoldGPUMemcpy.cpp
+DeviceDataCopyGeneration.cpp)
 
 add_dependencies(MultiDeviceDevicePass MultiDeviceDevicePassIncGen)
 
