@@ -6,7 +6,8 @@ EliminateGPUMemrefSpace.cpp
 TilingScfParallelDevice.cpp
 BufferizeOpWithAnalysis.cpp
 VectorizeAffineForDevice.cpp
-BufferizeOpInterfaceImpl.cpp)
+BufferizeOpInterfaceImpl.cpp
+CoalesceAffineForDevice.cpp)
 
 add_dependencies(MultiDeviceDevicePass MultiDeviceDevicePassIncGen)
 
@@ -15,6 +16,7 @@ MultiDeviceDeviceDialect
 MLIRBuiltinToLLVMIRTranslation
 MLIRGPUDialect
 MLIRSCFTransforms
+MLIRLinalgTransforms
 MLIRIR
 MLIRLLVMDialect
 MLIRLLVMToLLVMIRTranslation)

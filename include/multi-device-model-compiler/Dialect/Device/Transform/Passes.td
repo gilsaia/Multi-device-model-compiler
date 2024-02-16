@@ -93,4 +93,8 @@ def VectorizeAffineForDevice:Pass<"vectorize-affine-for-device","mlir::ModuleOp"
     ];
 }
 
+def CoalesceAffineForDevice:Pass<"coalesce-affine-for-device","mlir::ModuleOp"> {
+    let summary = "coalesce affine for with check load dim.";
+}
+
 #endif // MULTI_DEVICE_MODEL_COMPILER_DIALECT_DEVICE_TRANSFORM_
