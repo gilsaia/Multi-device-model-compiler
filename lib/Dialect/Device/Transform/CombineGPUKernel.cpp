@@ -35,7 +35,7 @@ void CombineGPUKernelPass::runOnOperation() {
   moduleOp.walk([](gpu::GPUModuleOp op) { op.erase(); });
   auto loc = moduleOp.getBody()->back().getLoc();
   builder.setInsertionPointToEnd(moduleOp.getBody());
-  auto newGpuModule = builder.create<gpu::GPUModuleOp>(loc, "Ops");
+  auto newGpuModule = builder.create<gpu::GPUModuleOp>(loc, "ops");
   builder.setInsertionPointToStart(newGpuModule.getBody());
   for (auto gpuFunc : funcs) {
     builder.insert(gpuFunc);
@@ -44,7 +44,7 @@ void CombineGPUKernelPass::runOnOperation() {
     auto kernelNameAttr = FlatSymbolRefAttr::get(
         builder.getStringAttr(launch.getKernelModuleName().getValue()));
     auto newKernelAttr =
-        SymbolRefAttr::get(builder.getStringAttr("Ops"), {kernelNameAttr});
+        SymbolRefAttr::get(builder.getStringAttr("ops"), {kernelNameAttr});
     launch.setKernelAttr(newKernelAttr);
     return WalkResult::advance();
   });
