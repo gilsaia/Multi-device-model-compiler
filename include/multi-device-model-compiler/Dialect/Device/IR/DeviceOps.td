@@ -111,4 +111,33 @@ def Device_Conv2DOp : Device_Op<"conv2d",[
     }];
 }
 
+def Device_Pool2DOp : Device_Op<"pool2d",[
+    DeclareOpInterfaceMethods<MemoryEffectsOpInterface>,
+    DeclareOpInterfaceMethods<GPU_AsyncOpInterface,["addAsyncDependency"]>,
+]> {
+    let summary = "performs a 2D convolution over given tensor input";
+
+    let arguments = (ins
+        AnyShaped:$input,
+        AnyShaped:$output,
+        Variadic<GPU_AsyncToken>:$asyncDependencies,
+
+        DenseI64ArrayAttr:$kernel,
+        DenseI64ArrayAttr:$pad,
+        DenseI64ArrayAttr:$stride,
+        StrAttr:$method
+    );
+
+    let results = (outs Optional<GPU_AsyncToken>:$asyncToken);
+
+    let hasVerifier = 1;
+    let assemblyFormat = [{
+        custom<AsyncDependencies>(type($asyncToken), $asyncDependencies)
+        `{` 
+        `input` $input `:` type($input)
+        `output` $output `:` type($output)
+        `}` attr-dict
+    }];
+}
+
 #endif // MULTI_DEVICE_MODEL_COMPILER_DIALECT_DEVICE_OPS_

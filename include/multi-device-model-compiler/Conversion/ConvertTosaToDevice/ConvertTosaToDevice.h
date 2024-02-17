@@ -16,6 +16,9 @@ void populateTosaFullConnectToMatmulConversionPattern(
 void populateTosaConv2dLoweringConversionPattern(
     mlir::ConversionTarget &target, mlir::RewritePatternSet &patterns,
     mlir::MLIRContext &ctx);
+void populateTosaPool2dLoweringConversionPattern(
+    mlir::ConversionTarget &target, mlir::RewritePatternSet &patterns,
+    mlir::MLIRContext &ctx);
 } // namespace conversion
 } // namespace multi_device
 

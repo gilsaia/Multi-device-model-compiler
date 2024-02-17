@@ -159,6 +159,34 @@ void Conv2DOp::addAsyncDependency(Value token) {
   getAsyncDependenciesMutable().append(token);
 }
 
+//===----------------------------------------------------------------------===//
+// Device_Pool2dOp
+//===----------------------------------------------------------------------===//
+LogicalResult Pool2DOp::verify() {
+  auto inputShape = getInput().getType().getShape();
+  auto outputShape = getOutput().getType().getShape();
+
+  if (inputShape.size() != 4 || outputShape.size() != 4) {
+    return failure();
+  }
+
+  if (inputShape[0] != outputShape[0] || inputShape[1] != outputShape[1]) {
+    return failure();
+  }
+  return success();
+}
+
+void Pool2DOp::getEffects(
+    llvm::SmallVectorImpl<SideEffects::EffectInstance<MemoryEffects::Effect>>
+        &effects) {
+  effects.emplace_back(MemoryEffects::Read::get(), getInput());
+  effects.emplace_back(MemoryEffects::Write::get(), getOutput());
+}
+
+void Pool2DOp::addAsyncDependency(Value token) {
+  getAsyncDependenciesMutable().append(token);
+}
+
 #include "multi-device-model-compiler/Dialect/Device/IR/DeviceOpsEnums.cpp.inc"
 
 using namespace mlir;

@@ -23,6 +23,8 @@ void populateTosaToDeviceConversionPattern(mlir::ConversionTarget &target,
   conversion::populateTosaClampToLinalgConversionPattern(target, patterns, ctx);
   conversion::populateTosaConv2dLoweringConversionPattern(target, patterns,
                                                           ctx);
+  conversion::populateTosaPool2dLoweringConversionPattern(target, patterns,
+                                                          ctx);
 }
 } // namespace multi_device
 
