@@ -67,7 +67,7 @@ public:
     CUDA_REPORT_IF_ERROR(cuCtxPushCurrent(context));
   }
 
-  ~ScopedContext() { CUDA_REPORT_IF_ERROR(cuCtxPopCurrent(nullptr)); }
+  ~ScopedContext() {}
 };
 
 #ifdef MLIR_ENABLE_CUDA_CUSPARSE
@@ -96,6 +96,7 @@ mgpuModuleFileLoad(const char *fname) {
 
 extern "C" MLIR_CUDA_WRAPPERS_EXPORT void mgpuModuleUnload() {
   CUDA_REPORT_IF_ERROR(cuModuleUnload(module));
+  CUDA_REPORT_IF_ERROR(cuCtxPopCurrent(nullptr));
 }
 
 extern "C" MLIR_CUDA_WRAPPERS_EXPORT CUfunction
@@ -113,7 +114,7 @@ mgpuLaunchKernel(CUfunction function, intptr_t gridX, intptr_t gridY,
                  intptr_t gridZ, intptr_t blockX, intptr_t blockY,
                  intptr_t blockZ, int32_t smem, CUstream stream, void **params,
                  void **extra) {
-  ScopedContext scopedContext;
+  // ScopedContext scopedContext;
   int32_t maxShmem = 0;
   CUdevice device = getDefaultCuDevice();
   CUDA_REPORT_IF_ERROR(cuDeviceGet(&device, /*ordinal=*/defaultDevice));
@@ -138,7 +139,7 @@ mgpuLaunchKernel(CUfunction function, intptr_t gridX, intptr_t gridY,
 }
 
 extern "C" MLIR_CUDA_WRAPPERS_EXPORT CUstream mgpuStreamCreate() {
-  ScopedContext scopedContext;
+  // ScopedContext scopedContext;
   CUstream stream = nullptr;
   CUDA_REPORT_IF_ERROR(cuStreamCreate(&stream, CU_STREAM_NON_BLOCKING));
   return stream;
@@ -159,7 +160,7 @@ extern "C" MLIR_CUDA_WRAPPERS_EXPORT void mgpuStreamWaitEvent(CUstream stream,
 }
 
 extern "C" MLIR_CUDA_WRAPPERS_EXPORT CUevent mgpuEventCreate() {
-  ScopedContext scopedContext;
+  // ScopedContext scopedContext;
   CUevent event = nullptr;
   CUDA_REPORT_IF_ERROR(cuEventCreate(&event, CU_EVENT_DISABLE_TIMING));
   return event;
@@ -167,14 +168,14 @@ extern "C" MLIR_CUDA_WRAPPERS_EXPORT CUevent mgpuEventCreate() {
 
 extern "C" MLIR_CUDA_WRAPPERS_EXPORT CUevent
 mgpuEventCreateWithStream(CUstream stream) {
-  ScopedContext scopedContext;
+  // ScopedContext scopedContext;
   CUevent event = nullptr;
   CUDA_REPORT_IF_ERROR(cuEventCreate(&event, CU_EVENT_DISABLE_TIMING));
   return event;
 }
 
 extern "C" MLIR_CUDA_WRAPPERS_EXPORT CUevent mgpuEventEnableTimeCreate() {
-  ScopedContext scopedContext;
+  // ScopedContext scopedContext;
   CUevent event = nullptr;
   CUDA_REPORT_IF_ERROR(cuEventCreate(&event, CU_EVENT_DEFAULT));
   return event;
@@ -201,7 +202,7 @@ extern "C" MLIR_CUDA_WRAPPERS_EXPORT float mgpuEventElapsedTime(CUevent begin,
 }
 
 extern "C" void *mgpuMemAlloc(uint64_t sizeBytes, CUstream /*stream*/) {
-  ScopedContext scopedContext;
+  // ScopedContext scopedContext;
   CUdeviceptr ptr;
   CUDA_REPORT_IF_ERROR(cuMemAlloc(&ptr, sizeBytes));
   return reinterpret_cast<void *>(ptr);
@@ -238,7 +239,7 @@ extern "C" void mgpuMemset16(void *dst, unsigned short value, size_t count,
 // transfer functions implemented.
 extern "C" MLIR_CUDA_WRAPPERS_EXPORT void
 mgpuMemHostRegister(void *ptr, uint64_t sizeBytes) {
-  ScopedContext scopedContext;
+  // ScopedContext scopedContext;
   CUDA_REPORT_IF_ERROR(cuMemHostRegister(ptr, sizeBytes, /*flags=*/0));
 }
 
@@ -268,7 +269,7 @@ mgpuMemHostRegisterMemRef(int64_t rank, StridedMemRefType<char, 1> *descriptor,
 
 // Allows to unregister byte array with the CUDA runtime.
 extern "C" MLIR_CUDA_WRAPPERS_EXPORT void mgpuMemHostUnregister(void *ptr) {
-  ScopedContext scopedContext;
+  // ScopedContext scopedContext;
   CUDA_REPORT_IF_ERROR(cuMemHostUnregister(ptr));
 }
 

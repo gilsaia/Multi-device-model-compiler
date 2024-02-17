@@ -7,4 +7,5 @@ target_link_libraries(multi-device-gpu-runner PUBLIC
 ${CMAKE_DL_LIBS}
 MultiDeviceRuntime
 MultiDeviceCUDARuntime
+MultiDeviceGPUOps
 LLVMSupport)

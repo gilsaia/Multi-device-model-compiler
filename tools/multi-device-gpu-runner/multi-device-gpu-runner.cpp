@@ -1,3 +1,4 @@
+#include "multi-device-model-compiler/Kernels/GPU/Ops.h"
 #include "multi-device-model-compiler/Runtime/CUDA/CudaRuntimeWrappers.h"
 #include "multi-device-model-compiler/Runtime/ModelInfo.h"
 #include "multi-device-model-compiler/Runtime/RuntimeUtil.h"
@@ -53,6 +54,7 @@ int main(int argc, char **argv) {
   }
 
   mgpuModuleFileLoad(OpsLibPath.c_str());
+  gpuOpsInit();
 
   ModelInfo *info = ModelInfo::ParseModelInfo();
   auto params = GetParamsVec(info);
@@ -84,6 +86,7 @@ int main(int argc, char **argv) {
                  << "\tseconds\n";
   }
 
+  gpuOpsDeinit();
   mgpuModuleUnload();
   dlclose(handle);
 
