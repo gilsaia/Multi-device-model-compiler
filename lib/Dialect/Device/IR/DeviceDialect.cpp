@@ -110,7 +110,53 @@ void MatmulOp::getEffects(
 }
 
 void MatmulOp::addAsyncDependency(Value token) {
-  this->getAsyncDependenciesMutable().append(token);
+  getAsyncDependenciesMutable().append(token);
+}
+
+//===----------------------------------------------------------------------===//
+// Device_Cond2dOp
+//===----------------------------------------------------------------------===//
+LogicalResult Conv2DOp::verify() {
+  auto inputShape = getInput().getType().getShape(),
+       weightShape = getWeight().getType().getShape(),
+       biasShape = getBias().getType().getShape(),
+       outputShape = getOutput().getType().getShape();
+  if (inputShape.size() != 4 || weightShape.size() != 4 ||
+      outputShape.size() != 4) {
+    return failure();
+  }
+  if (inputShape[0] != outputShape[0] || inputShape[1] != weightShape[1] ||
+      outputShape[1] != weightShape[0]) {
+    return failure();
+  }
+  if (getPostadd()) {
+    auto postAddShape = getPostadd().getType().getShape();
+    if (postAddShape.size() != 4) {
+      return failure();
+    }
+    for (auto [post, out] : llvm::zip(postAddShape, outputShape)) {
+      if (post != out) {
+        return failure();
+      }
+    }
+  }
+  return success();
+}
+
+void Conv2DOp::getEffects(
+    llvm::SmallVectorImpl<SideEffects::EffectInstance<MemoryEffects::Effect>>
+        &effects) {
+  effects.emplace_back(MemoryEffects::Read::get(), getInput());
+  effects.emplace_back(MemoryEffects::Read::get(), getWeight());
+  effects.emplace_back(MemoryEffects::Read::get(), getBias());
+  effects.emplace_back(MemoryEffects::Write::get(), getOutput());
+  if (getPostadd()) {
+    effects.emplace_back(MemoryEffects::Write::get(), getPostadd());
+  }
+}
+
+void Conv2DOp::addAsyncDependency(Value token) {
+  getAsyncDependenciesMutable().append(token);
 }
 
 #include "multi-device-model-compiler/Dialect/Device/IR/DeviceOpsEnums.cpp.inc"

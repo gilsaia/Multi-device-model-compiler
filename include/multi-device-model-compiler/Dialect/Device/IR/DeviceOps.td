@@ -74,4 +74,41 @@ def Device_MatmulOp : Device_Op<"matmul",[
     }];
 }
 
+def Device_Conv2DOp : Device_Op<"conv2d",[
+    DeclareOpInterfaceMethods<MemoryEffectsOpInterface>,
+    DeclareOpInterfaceMethods<GPU_AsyncOpInterface,["addAsyncDependency"]>,
+    AttrSizedOperandSegments 
+]> {
+    let summary = "performs a 2D convolution over given tensor input";
+
+    let arguments = (ins
+        AnyShaped:$input,
+        AnyShaped:$weight,
+        AnyShaped:$bias,
+        AnyShaped:$output,
+        Optional<AnyShaped>:$postadd,
+        Variadic<GPU_AsyncToken>:$asyncDependencies,
+
+        DenseI64ArrayAttr:$kernel,
+        DenseI64ArrayAttr:$pad,
+        DenseI64ArrayAttr:$stride,
+        DenseI64ArrayAttr:$dilation,
+        BoolAttr:$containRelu
+    );
+
+    let results = (outs Optional<GPU_AsyncToken>:$asyncToken);
+
+    let hasVerifier = 1;
+    let assemblyFormat = [{
+        custom<AsyncDependencies>(type($asyncToken), $asyncDependencies)
+        `{` 
+        `input` $input `:` type($input)
+        `weight` $weight `:` type($weight) 
+        `bias` $bias `:` type($bias)
+        `output` $output `:` type($output)
+        (`postadd` $postadd^ `:` type($postadd))?
+        `}` attr-dict
+    }];
+}
+
 #endif // MULTI_DEVICE_MODEL_COMPILER_DIALECT_DEVICE_OPS_

@@ -21,6 +21,8 @@ void populateTosaToDeviceConversionPattern(mlir::ConversionTarget &target,
   conversion::populateTosaFullConnectToMatmulConversionPattern(target, patterns,
                                                                ctx);
   conversion::populateTosaClampToLinalgConversionPattern(target, patterns, ctx);
+  conversion::populateTosaConv2dLoweringConversionPattern(target, patterns,
+                                                          ctx);
 }
 } // namespace multi_device
 
