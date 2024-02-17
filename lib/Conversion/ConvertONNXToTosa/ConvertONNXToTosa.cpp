@@ -38,6 +38,10 @@ void populateONNXToTOSAConversionPattern(ConversionTarget &target,
                                                         typeConverter, ctx);
   conversion::populateLoweringONNXMatmulOpToTOSAPattern(target, patterns,
                                                         typeConverter, ctx);
+  conversion::populateLoweringONNXFlattenOpToTOSAPattern(target, patterns,
+                                                         typeConverter, ctx);
+  conversion::populateLoweringONNXReduceMeanOpToTOSAPattern(target, patterns,
+                                                            typeConverter, ctx);
 }
 
 namespace {

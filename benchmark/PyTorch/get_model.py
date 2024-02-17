@@ -13,12 +13,16 @@ sys.path.append(root_dir)
 from data_util import load_data_raw, save_data
 
 
-from Models import Linear
+from Models import Linear, Relu, Resnet
 
 
 def get_model(model: str):
     if model == "linear":
         return Linear.get_default_model()
+    elif model == "relu":
+        return Relu.get_default_model()
+    elif model == "resnet18":
+        return Resnet.get_resnet18()
     raise NotImplementedError("Wrong model name")
 
 

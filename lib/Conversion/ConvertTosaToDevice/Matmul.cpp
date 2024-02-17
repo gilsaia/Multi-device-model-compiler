@@ -21,9 +21,14 @@ public:
     auto inputShape = input.getType().cast<RankedTensorType>().getShape();
     if (mlir::isa<tosa::ReshapeOp>(input.getDefiningOp())) {
       auto reshape = mlir::cast<tosa::ReshapeOp>(input.getDefiningOp());
-      input = reshape.getInput1();
-      inputShape = input.getType().cast<RankedTensorType>().getShape();
-      rewriter.eraseOp(reshape);
+      auto reshapeInputType =
+          reshape.getInput1().getType().cast<RankedTensorType>();
+      if (reshapeInputType.getShape().back() ==
+          op.getWeight().getType().getShape().back()) {
+        input = reshape.getInput1();
+        inputShape = input.getType().cast<RankedTensorType>().getShape();
+        rewriter.eraseOp(reshape);
+      }
     }
 
     auto output = op.getResult();

@@ -15,6 +15,12 @@ void populateLoweringONNXReturnOpToTOSAPattern(
 void populateLoweringONNXMatmulOpToTOSAPattern(
     mlir::ConversionTarget &target, mlir::RewritePatternSet &patterns,
     mlir::TypeConverter &typeConverter, mlir::MLIRContext *ctx);
+void populateLoweringONNXFlattenOpToTOSAPattern(
+    mlir::ConversionTarget &target, mlir::RewritePatternSet &patterns,
+    mlir::TypeConverter &typeConverter, mlir::MLIRContext *ctx);
+void populateLoweringONNXReduceMeanOpToTOSAPattern(
+    mlir::ConversionTarget &target, mlir::RewritePatternSet &patterns,
+    mlir::TypeConverter &typeConverter, mlir::MLIRContext *ctx);
 } // namespace conversion
 } // namespace multi_device
 

@@ -34,7 +34,7 @@ void multi_device::pipelines::createMLIRToCPUPipeline(mlir::OpPassManager &pm) {
   pm.addPass(
       multi_device::device::createAddDeviceTypeToFuncPass(deviceOptions));
   pm.addPass(mlir::tosa::createTosaInferShapesPass());
-  pm.addPass(mlir::tosa::createTosaLayerwiseConstantFoldPass());
+  // pm.addPass(mlir::tosa::createTosaLayerwiseConstantFoldPass());
   pm.addPass(mlir::tosa::createTosaMakeBroadcastablePass());
   pm.addPass(mlir::tosa::createTosaInferShapesPass());
   pm.addPass(mlir::tosa::createTosaValidationPass());
