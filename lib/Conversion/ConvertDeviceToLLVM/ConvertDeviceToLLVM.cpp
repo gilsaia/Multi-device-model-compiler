@@ -309,8 +309,13 @@ LogicalResult ConvertMatmulOpToDeviceRuntimeCallPattern::matchAndRewrite(
         kVal = rewriter.create<LLVM::ConstantOp>(loc, llvmInt64Type, k),
         nVal = rewriter.create<LLVM::ConstantOp>(loc, llvmInt64Type, n);
 
+  SmallVector<Value, 4> opOperandsVec{matmulOp.getInput(), matmulOp.getWeight(),
+                                      matmulOp.getBias(), matmulOp.getOutput()},
+      operandsVec{adaptor.getInput(), adaptor.getWeight(), adaptor.getBias(),
+                  adaptor.getOutput()};
+
   llvm::SmallVector<Value, 4> arguments = getTypeConverter()->promoteOperands(
-      loc, matmulOp.getOperands(), adaptor.getOperands(), rewriter, true);
+      loc, opOperandsVec, operandsVec, rewriter, true);
 
   if (device == multi_device::device::DeviceType::CPU) {
     cpuMatmulCallBuilder.create(loc, rewriter,
@@ -324,7 +329,16 @@ LogicalResult ConvertMatmulOpToDeviceRuntimeCallPattern::matchAndRewrite(
     return rewriter.notifyMatchFailure(matmulOp, "Wrong device");
   }
 
-  rewriter.eraseOp(matmulOp);
+  // async control
+  if (matmulOp.getAsyncToken()) {
+    if (matmulOp.getAsyncDependencies().size() != 1) {
+      return rewriter.notifyMatchFailure(matmulOp, "Wrong async dependency");
+    }
+    rewriter.replaceOp(matmulOp, {matmulOp.getAsyncDependencies()[0]});
+  } else {
+    rewriter.eraseOp(matmulOp);
+  }
+
   return success();
 }
 

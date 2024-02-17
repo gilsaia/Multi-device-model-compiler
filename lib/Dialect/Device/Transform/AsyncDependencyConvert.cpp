@@ -92,6 +92,15 @@ void AsyncDependencyConvertPass::runOnOperation() {
           kernelStream.getAsyncToken());
       return WalkResult::advance();
     }
+    if (mlir::isa<multi_device::device::MatmulOp>(op)) {
+      auto matmul = mlir::cast<multi_device::device::MatmulOp>(op);
+      ::changeAsyncDependencies(matmul.getAsyncDependenciesMutable(),
+                                kernelStream.getAsyncToken(), op, rewriter);
+      rewriter.create<multi_device::device::RecordOp>(
+          op.getLoc(), dataStream.getAsyncToken(),
+          kernelStream.getAsyncToken());
+      return WalkResult::advance();
+    }
     return WalkResult::advance();
   });
   rewriter.setInsertionPointAfter(funcOp.back().back().getPrevNode());

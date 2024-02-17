@@ -104,6 +104,10 @@ void MatmulOp::getEffects(
   effects.emplace_back(MemoryEffects::Write::get(), getOutput());
 }
 
+void MatmulOp::addAsyncDependency(Value token) {
+  this->getAsyncDependenciesMutable().append(token);
+}
+
 #include "multi-device-model-compiler/Dialect/Device/IR/DeviceOpsEnums.cpp.inc"
 
 using namespace mlir;

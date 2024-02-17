@@ -53,7 +53,8 @@ struct MatmulOpInterface
     }
 
     bufferization::replaceOpWithNewBufferizedOp<multi_device::device::MatmulOp>(
-        rewriter, op, *inputMem, *weightMem, *biasMem, *outputMem);
+        rewriter, op, TypeRange(), *inputMem, *weightMem, *biasMem, *outputMem,
+        ValueRange());
     return success();
   }
 };

@@ -46,6 +46,7 @@ def Device_RecordOp : Device_Op<"record"> {
 
 def Device_MatmulOp : Device_Op<"matmul",[
     DeclareOpInterfaceMethods<MemoryEffectsOpInterface>,
+    DeclareOpInterfaceMethods<GPU_AsyncOpInterface,["addAsyncDependency"]>
     ]> {
     let summary = "Matmul op for device to different func call.";
     let description = [{
@@ -56,10 +57,14 @@ def Device_MatmulOp : Device_Op<"matmul",[
         AnyShaped:$input,
         AnyShaped:$weight,
         AnyShaped:$bias,
-        AnyShaped:$output);
+        AnyShaped:$output,
+        Variadic<GPU_AsyncToken>:$asyncDependencies);
+
+    let results = (outs Optional<GPU_AsyncToken>:$asyncToken);
 
     let hasVerifier = 1;
     let assemblyFormat = [{
+        custom<AsyncDependencies>(type($asyncToken), $asyncDependencies)
         `{` 
         `input` $input `:` type($input)
         `weight` $weight `:` type($weight) 

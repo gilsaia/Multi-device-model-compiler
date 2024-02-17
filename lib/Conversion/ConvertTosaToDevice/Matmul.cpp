@@ -59,8 +59,8 @@ public:
         op.getLoc(), transposeWeightType, op.getWeight(), perm.getResult());
 
     auto matmul = rewriter.create<multi_device::device::MatmulOp>(
-        op.getLoc(), input, transpose.getResult(), op.getBias(),
-        outputTensor.getResult());
+        op.getLoc(), TypeRange(), input, transpose.getResult(), op.getBias(),
+        outputTensor.getResult(), ValueRange());
 
     if (onlyReshape) {
       rewriter.eraseOp(op);
