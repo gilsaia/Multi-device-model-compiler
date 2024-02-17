@@ -92,6 +92,11 @@ LogicalResult MatmulOp::verify() {
       return failure();
     }
   }
+  if (getAsyncToken()) {
+    if (getAsyncDependencies().size() != 1) {
+      return failure();
+    }
+  }
   return success();
 }
 

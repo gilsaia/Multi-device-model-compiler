@@ -150,7 +150,8 @@ public:
       llvmVoidType,
       {llvmPointerType /* input */, llvmPointerType /* weight */,
        llvmPointerType /* bias */, llvmPointerType /* output */,
-       llvmInt64Type /* M */, llvmInt64Type /* N */, llvmInt64Type /* K */}};
+       llvmInt64Type /* M */, llvmInt64Type /* N */, llvmInt64Type /* K */,
+       llvmPointerType /* stream */}};
 
 protected:
   SymbolTable *cachedModuleTable;
@@ -324,16 +325,14 @@ LogicalResult ConvertMatmulOpToDeviceRuntimeCallPattern::matchAndRewrite(
   } else if (device == multi_device::device::DeviceType::GPU) {
     gpuMatmulCallBuilder.create(loc, rewriter,
                                 {arguments[0], arguments[1], arguments[2],
-                                 arguments[3], mVal, nVal, kVal});
+                                 arguments[3], mVal, nVal, kVal,
+                                 adaptor.getAsyncDependencies()[0]});
   } else {
     return rewriter.notifyMatchFailure(matmulOp, "Wrong device");
   }
 
   // async control
   if (matmulOp.getAsyncToken()) {
-    if (matmulOp.getAsyncDependencies().size() != 1) {
-      return rewriter.notifyMatchFailure(matmulOp, "Wrong async dependency");
-    }
     rewriter.replaceOp(matmulOp, {matmulOp.getAsyncDependencies()[0]});
   } else {
     rewriter.eraseOp(matmulOp);
