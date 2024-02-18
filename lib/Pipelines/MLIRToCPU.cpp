@@ -51,7 +51,7 @@ void multi_device::pipelines::createMLIRToCPUPipeline(mlir::OpPassManager &pm) {
   pm.addNestedPass<mlir::func::FuncOp>(mlir::createLinalgDetensorizePass());
 
   pm.addPass(mlir::createCanonicalizerPass());
-  pm.addPass(mlir::createCSEPass());
+  // pm.addPass(mlir::createCSEPass());
 
   pm.addPass(mlir::bufferization::createEmptyTensorEliminationPass());
   pm.addPass(mlir::bufferization::createEmptyTensorToAllocTensorPass());
@@ -107,4 +107,6 @@ void multi_device::pipelines::createMLIRToCPUPipeline(mlir::OpPassManager &pm) {
   pm.addPass(multi_device::createConvertDeviceToLLVM(deviceToLLVMConfig));
   pm.addPass(mlir::createReconcileUnrealizedCastsPass());
   pm.addPass(multi_device::createEliminateEntryPointPass());
+  pm.addPass(mlir::createCanonicalizerPass());
+  pm.addPass(mlir::createCSEPass());
 }

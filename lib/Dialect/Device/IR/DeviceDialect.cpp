@@ -106,6 +106,7 @@ void MatmulOp::getEffects(
   effects.emplace_back(MemoryEffects::Read::get(), getInput());
   effects.emplace_back(MemoryEffects::Read::get(), getWeight());
   effects.emplace_back(MemoryEffects::Read::get(), getBias());
+  effects.emplace_back(MemoryEffects::Read::get(), getOutput());
   effects.emplace_back(MemoryEffects::Write::get(), getOutput());
 }
 
@@ -149,9 +150,10 @@ void Conv2DOp::getEffects(
   effects.emplace_back(MemoryEffects::Read::get(), getInput());
   effects.emplace_back(MemoryEffects::Read::get(), getWeight());
   effects.emplace_back(MemoryEffects::Read::get(), getBias());
+  effects.emplace_back(MemoryEffects::Read::get(), getOutput());
   effects.emplace_back(MemoryEffects::Write::get(), getOutput());
   if (getPostadd()) {
-    effects.emplace_back(MemoryEffects::Write::get(), getPostadd());
+    effects.emplace_back(MemoryEffects::Read::get(), getPostadd());
   }
 }
 
@@ -179,7 +181,9 @@ LogicalResult Pool2DOp::verify() {
 void Pool2DOp::getEffects(
     llvm::SmallVectorImpl<SideEffects::EffectInstance<MemoryEffects::Effect>>
         &effects) {
+
   effects.emplace_back(MemoryEffects::Read::get(), getInput());
+  effects.emplace_back(MemoryEffects::Read::get(), getOutput());
   effects.emplace_back(MemoryEffects::Write::get(), getOutput());
 }
 

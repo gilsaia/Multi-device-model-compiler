@@ -13,7 +13,7 @@ sys.path.append(root_dir)
 from data_util import load_data_raw, save_data
 
 
-from Models import Linear, Relu, Resnet
+from Models import Linear, Relu, Resnet, Conv, MaxPool
 
 
 def get_model(model: str):
@@ -23,6 +23,10 @@ def get_model(model: str):
         return Relu.get_default_model()
     elif model == "resnet18":
         return Resnet.get_resnet18()
+    elif model == "conv":
+        return Conv.get_default_model()
+    elif model == "maxpool":
+        return MaxPool.get_default_model()
     raise NotImplementedError("Wrong model name")
 
 
