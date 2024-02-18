@@ -14,7 +14,16 @@ from data_util import load_data_raw, save_data
 
 
 def profile_model(model: str, args):
-    sess = ort.InferenceSession(model, providers=["CPUExecutionProvider"])
+    options = ort.SessionOptions()
+    # options.log_severity_level = 0
+    options.enable_cpu_mem_arena = False
+    options.enable_mem_reuse = False
+    options.enable_mem_pattern = False
+    options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_DISABLE_ALL
+    # options.optimized_model_filepath = "./optim_resnet.onnx"
+    sess = ort.InferenceSession(
+        model, providers=["CPUExecutionProvider"], sess_options=options
+    )
 
     inputs: list[ort.NodeArg] = sess.get_inputs()
     input_data = []

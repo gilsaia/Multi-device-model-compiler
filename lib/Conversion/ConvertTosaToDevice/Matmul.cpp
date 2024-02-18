@@ -41,7 +41,9 @@ public:
         onlyReshape = false;
         break;
       }
-      onlyReshape = true;
+      if (outputReshape.getResult().getType().getRank() == inputShape.size()) {
+        onlyReshape = true;
+      }
     }
     if (onlyReshape) {
       output = outputReshape.getResult();
