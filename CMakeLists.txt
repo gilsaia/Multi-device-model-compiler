@@ -49,13 +49,16 @@ include_directories(${CMAKE_BINARY_DIR}/3rdparty/onnx-mlir)
 
 #---------------------------------------------------------------
 
-# TPU-mlir rely on 3rdparty packages
+# flat buffers
 set(FLATBUFFERS_BUILD_TESTS OFF)
 add_subdirectory(3rdparty/flatbuffers)
 include_directories(3rdparty/flatbuffers/include)
-set(DNNL_CPU_RUNTIME OMP)
+
+# oneDNN
+set(DNNL_CPU_RUNTIME TBB)
 set(DNNL_BUILD_EXAMPLES OFF)
 set(DNNL_BUILD_TESTS OFF)
+set(TBBROOT ${CMAKE_SOURCE_DIR}/3rdparty/oneTBB/build/tbb)
 add_subdirectory(3rdparty/oneDNN)
 include_directories(3rdparty/oneDNN/include)
 include_directories(${CMAKE_BINARY_DIR}/3rdparty/oneDNN/include)
