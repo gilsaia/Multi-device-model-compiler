@@ -67,6 +67,10 @@ jobs:
                 sh utils/build-llvm.sh
               env:
                 LLVM_CCACHE_MAXSIZE: 1G
+            - name: Configure&Build OneTBB
+              run: |
+                sh utils/configure-onetbb.sh
+                sh utils/build-onetbb.sh
             - name: Configure CMake
               run: cmake -G Ninja -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DUSE_CCACHE_BUILD=ON
             - name: Build
