@@ -101,6 +101,24 @@ void AsyncDependencyConvertPass::runOnOperation() {
           kernelStream.getAsyncToken());
       return WalkResult::advance();
     }
+    if (mlir::isa<multi_device::device::Conv2DOp>(op)) {
+      auto conv2d = cast<multi_device::device::Conv2DOp>(op);
+      ::changeAsyncDependencies(conv2d.getAsyncDependenciesMutable(),
+                                kernelStream.getAsyncToken(), op, rewriter);
+      rewriter.create<multi_device::device::RecordOp>(
+          op.getLoc(), dataStream.getAsyncToken(),
+          kernelStream.getAsyncToken());
+      return WalkResult::advance();
+    }
+    if (mlir::isa<multi_device::device::Pool2DOp>(op)) {
+      auto pool2d = cast<multi_device::device::Pool2DOp>(op);
+      ::changeAsyncDependencies(pool2d.getAsyncDependenciesMutable(),
+                                kernelStream.getAsyncToken(), op, rewriter);
+      rewriter.create<multi_device::device::RecordOp>(
+          op.getLoc(), dataStream.getAsyncToken(),
+          kernelStream.getAsyncToken());
+      return WalkResult::advance();
+    }
     return WalkResult::advance();
   });
   rewriter.setInsertionPointAfter(funcOp.back().back().getPrevNode());

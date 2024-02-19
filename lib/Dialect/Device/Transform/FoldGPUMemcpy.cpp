@@ -21,6 +21,24 @@ public:
 };
 } // namespace
 
+static void FoldGPUMemcpydth(gpu::MemcpyOp dth) { dth.erase(); }
+
+static void FoldGPUMemcpyhtd(gpu::MemcpyOp dth, gpu::MemcpyOp htd) {
+  auto srcDevice = dth.getSrc(), dstDevice = htd.getDst();
+  gpu::DeallocOp srcDealloc;
+  for (auto user : srcDevice.getUsers()) {
+    if (isa<gpu::DeallocOp>(user)) {
+      srcDealloc = cast<gpu::DeallocOp>(user);
+      break;
+    }
+  }
+  gpu::AllocOp dstAlloc = cast<gpu::AllocOp>(dstDevice.getDefiningOp());
+  dstDevice.replaceAllUsesWith(srcDevice);
+  htd.erase();
+  dstAlloc.erase();
+  srcDealloc.erase();
+}
+
 static void FoldGPUMemcpy(gpu::MemcpyOp dth, gpu::MemcpyOp htd) {
   auto srcDevice = dth.getSrc(), dstDevice = htd.getDst();
   gpu::DeallocOp srcDealloc;
@@ -42,6 +60,7 @@ static void FoldGPUMemcpy(gpu::MemcpyOp dth, gpu::MemcpyOp htd) {
 void FoldGPUMemcpyPass::runOnOperation() {
   auto moduleOp = getOperation();
   bool change = false;
+  llvm::DenseSet<gpu::MemcpyOp> waitToErase;
   do {
     change = false;
     llvm::DenseMap<Value, gpu::MemcpyOp> foldMap;
@@ -62,7 +81,11 @@ void FoldGPUMemcpyPass::runOnOperation() {
           return WalkResult::advance();
         });
     if (change) {
-      FoldGPUMemcpy(candidate.first, candidate.second);
+      waitToErase.insert(candidate.first);
+      FoldGPUMemcpyhtd(candidate.first, candidate.second);
     }
   } while (change);
+  for (auto cpy : waitToErase) {
+    FoldGPUMemcpydth(cpy);
+  }
 }

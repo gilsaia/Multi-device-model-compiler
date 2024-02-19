@@ -68,4 +68,45 @@ void DeviceDataCopyGenerationPass::runOnOperation() {
     matmul.setOperand(2, biasAlloc.getResult(0));
     matmul.setOperand(3, outputAlloc.getResult(0));
   });
+  moduleOp.walk([&ctx, &builder](multi_device::device::Conv2DOp conv2d) {
+    builder.setInsertionPoint(conv2d);
+    auto inputType = conv2d.getInput().getType().cast<MemRefType>(),
+         weightType = conv2d.getWeight().getType().cast<MemRefType>(),
+         biasType = conv2d.getBias().getType().cast<MemRefType>(),
+         outputType = conv2d.getOutput().getType().cast<MemRefType>();
+    auto inputAlloc =
+        GenDataAllocAndCpy(conv2d, builder, conv2d.getInput(), inputType, true);
+    auto weightAlloc = GenDataAllocAndCpy(conv2d, builder, conv2d.getWeight(),
+                                          weightType, true);
+    auto biasAlloc =
+        GenDataAllocAndCpy(conv2d, builder, conv2d.getBias(), biasType, true);
+    auto outputAlloc = GenDataAllocAndCpy(conv2d, builder, conv2d.getOutput(),
+                                          outputType, false);
+    if (conv2d.getPostadd()) {
+      auto postAddAlloc = GenDataAllocAndCpy(
+          conv2d, builder, conv2d.getPostadd(), outputType, true);
+      conv2d.setOperand(4, postAddAlloc.getResult(0));
+    }
+    builder.setInsertionPointAfter(conv2d);
+    builder.create<gpu::MemcpyOp>(conv2d.getLoc(), TypeRange(), ValueRange(),
+                                  conv2d.getOutput(), outputAlloc.getResult(0));
+    conv2d.setOperand(0, inputAlloc.getResult(0));
+    conv2d.setOperand(1, weightAlloc.getResult(0));
+    conv2d.setOperand(2, biasAlloc.getResult(0));
+    conv2d.setOperand(3, outputAlloc.getResult(0));
+  });
+  moduleOp.walk([&ctx, &builder](multi_device::device::Pool2DOp pool2d) {
+    builder.setInsertionPoint(pool2d);
+    auto inputType = pool2d.getInput().getType().cast<MemRefType>(),
+         outputType = pool2d.getOutput().getType().cast<MemRefType>();
+    auto inputAlloc =
+        GenDataAllocAndCpy(pool2d, builder, pool2d.getInput(), inputType, true);
+    auto outputAlloc = GenDataAllocAndCpy(pool2d, builder, pool2d.getOutput(),
+                                          outputType, false);
+    builder.setInsertionPointAfter(pool2d);
+    builder.create<gpu::MemcpyOp>(pool2d.getLoc(), TypeRange(), ValueRange(),
+                                  pool2d.getOutput(), outputAlloc.getResult(0));
+    pool2d.setOperand(0, inputAlloc.getResult(0));
+    pool2d.setOperand(1, outputAlloc.getResult(0));
+  });
 }

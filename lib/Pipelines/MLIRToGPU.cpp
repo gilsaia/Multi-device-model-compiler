@@ -49,7 +49,7 @@ void multi_device::pipelines::createMLIRToGPUPipeline(mlir::OpPassManager &pm) {
   pm.addPass(device::createAddDeviceTypeToFuncPass(deviceOptions));
   pm.addPass(multi_device::createEliminateEntryPointPass());
   pm.addPass(mlir::tosa::createTosaInferShapesPass());
-  pm.addPass(mlir::tosa::createTosaLayerwiseConstantFoldPass());
+  //   pm.addPass(mlir::tosa::createTosaLayerwiseConstantFoldPass());
   pm.addPass(mlir::tosa::createTosaMakeBroadcastablePass());
   pm.addPass(mlir::tosa::createTosaInferShapesPass());
   pm.addPass(mlir::tosa::createTosaValidationPass());
@@ -66,7 +66,7 @@ void multi_device::pipelines::createMLIRToGPUPipeline(mlir::OpPassManager &pm) {
   pm.addNestedPass<mlir::func::FuncOp>(mlir::createLinalgDetensorizePass());
 
   pm.addPass(mlir::createCanonicalizerPass());
-  pm.addPass(mlir::createCSEPass());
+  //   pm.addPass(mlir::createCSEPass());
 
   pm.addPass(mlir::bufferization::createEmptyTensorEliminationPass());
   pm.addPass(mlir::bufferization::createEmptyTensorToAllocTensorPass());
