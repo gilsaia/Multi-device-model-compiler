@@ -228,4 +228,31 @@ mgpuPool2d(float *input, float *output, int64_t N, int64_t C, int64_t H,
            int64_t W, int64_t OH, int64_t OW, int64_t KH, int64_t KW,
            int64_t PHL, int64_t PWL, int64_t PHR, int64_t PWR, int64_t SH,
            int64_t SW, int64_t method /* 0 - max, 1 - avg */,
-           cudaStream_t stream) {}
+           cudaStream_t stream) {
+  cudnnSetStream(cudnnHandle, stream);
+
+  cudnnPoolingDescriptor_t poolDesc;
+  cudnnPoolingMode_t mode = (method == 0)
+                                ? CUDNN_POOLING_MAX
+                                : CUDNN_POOLING_AVERAGE_COUNT_INCLUDE_PADDING;
+  checkCudnnStatus(cudnnCreatePoolingDescriptor(&poolDesc));
+  checkCudnnStatus(cudnnSetPooling2dDescriptor(
+      poolDesc, mode, CUDNN_NOT_PROPAGATE_NAN, KH, KW, PHL, PWL, SH, SW));
+
+  cudnnTensorDescriptor_t inputDesc, outputDesc;
+  checkCudnnStatus(cudnnCreateTensorDescriptor(&inputDesc));
+  checkCudnnStatus(cudnnSetTensor4dDescriptor(inputDesc, CUDNN_TENSOR_NCHW,
+                                              CUDNN_DATA_FLOAT, N, C, H, W));
+  checkCudnnStatus(cudnnCreateTensorDescriptor(&outputDesc));
+  checkCudnnStatus(cudnnSetTensor4dDescriptor(outputDesc, CUDNN_TENSOR_NCHW,
+                                              CUDNN_DATA_FLOAT, N, C, OH, OW));
+
+  float alpha = 1, beta = 0;
+
+  checkCudnnStatus(cudnnPoolingForward(cudnnHandle, poolDesc, &alpha, inputDesc,
+                                       input, &beta, outputDesc, output));
+
+  cudnnDestroyTensorDescriptor(inputDesc);
+  cudnnDestroyTensorDescriptor(outputDesc);
+  cudnnDestroyPoolingDescriptor(poolDesc);
+}
