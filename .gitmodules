@@ -13,3 +13,6 @@
 [submodule "3rdparty/oneTBB"]
 	path = 3rdparty/oneTBB
 	url = git@github.com:oneapi-src/oneTBB.git
+[submodule "3rdparty/xxHash"]
+	path = 3rdparty/xxHash
+	url = git@github.com:Cyan4973/xxHash.git

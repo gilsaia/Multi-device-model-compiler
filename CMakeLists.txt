@@ -62,6 +62,9 @@ add_subdirectory(3rdparty/oneDNN)
 include_directories(3rdparty/oneDNN/include)
 include_directories(${CMAKE_BINARY_DIR}/3rdparty/oneDNN/include)
 
+# xxHash
+add_subdirectory(3rdparty/xxHash/cmake_unofficial EXCLUDE_FROM_ALL)
+
 # TPU-mlir Configure
 add_subdirectory(3rdparty/tpu-mlir)
 include_directories(${CMAKE_SOURCE_DIR}/3rdparty/tpu-mlir/include)
