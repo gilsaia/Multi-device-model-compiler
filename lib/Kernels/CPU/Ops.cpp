@@ -12,31 +12,6 @@
 
 #include <unordered_map>
 
-// namespace llvm {
-// struct SmallVectorHasher {
-//   std::size_t operator()(const SmallVector<int64_t> &vec) const {
-//     return hash_combine_range(vec.begin(), vec.end());
-//   }
-// };
-// template <> struct DenseMapInfo<SmallVector<int64_t>> {
-//   static inline SmallVector<int64_t> getEmptyKey() {
-//     SmallVector<int64_t> EmptyKey{-1};
-//     return EmptyKey;
-//   }
-//   static inline SmallVector<int64_t> getTombstoneKey() {
-//     SmallVector<int64_t> TombstoneKey{-2};
-//     return TombstoneKey;
-//   }
-//   static unsigned getHashValue(const SmallVector<int64_t> &vec) {
-//     return SmallVectorHasher()(vec);
-//   }
-//   static bool isEqual(const SmallVector<int64_t> &lhs,
-//                       const SmallVector<int64_t> &rhs) {
-//     return lhs == rhs;
-//   }
-// };
-// } // namespace llvm
-
 using namespace dnnl;
 
 static engine cpuEngine;
@@ -49,14 +24,12 @@ void cpuOpsInit(bool fastMathFlag) {
   fastFlag = fastMathFlag;
 }
 
-// static llvm::DenseMap<llvm::SmallVector<int64_t>, matmul> matmulMap;
 static std::unordered_map<int64_t, matmul> matmulMap;
 
 extern "C" MLIR_CPU_OPS_EXPORT void mcpuMatmul(float *input, float *weight,
                                                float *bias, float *output,
                                                int64_t M, int64_t N,
                                                int64_t K) {
-  // llvm::SmallVector<int64_t> matmulKey{M, N, K};
   std::array<int64_t, 3> keys{M, N, K};
   int64_t matmulKey = XXH3_64bits(keys.data(), keys.size() * sizeof(int64_t));
   matmul matmulPrim;
@@ -84,7 +57,6 @@ extern "C" MLIR_CPU_OPS_EXPORT void mcpuMatmul(float *input, float *weight,
     matmulPrim = matmul(matmulPd);
 
     matmulMap.emplace(matmulKey, matmulPrim);
-    // matmulMap.insert({matmulKey, matmulPrim});
   }
 
   auto inputMem = memory(inputMd, cpuEngine, input),
@@ -102,8 +74,6 @@ extern "C" MLIR_CPU_OPS_EXPORT void mcpuMatmul(float *input, float *weight,
   cpuStream.wait();
 }
 
-// static llvm::DenseMap<llvm::SmallVector<int64_t>, convolution_forward>
-//     conv2dMap;
 static std::unordered_map<int64_t, convolution_forward> conv2dMap;
 
 extern "C" MLIR_CPU_OPS_EXPORT void
@@ -157,7 +127,6 @@ mcpuConv2d(float *input, float *weight, float *bias, float *output,
         paddindDimsL, paddingDimsR, convAttr);
 
     convPrim = convolution_forward(convPd);
-    // conv2dMap.insert({convKey, convPrim});
     conv2dMap.emplace(convKey, convPrim);
   }
 
@@ -181,7 +150,6 @@ mcpuConv2d(float *input, float *weight, float *bias, float *output,
   cpuStream.wait();
 }
 
-// static llvm::DenseMap<llvm::SmallVector<int64_t>, pooling_forward> pool2dMap;
 static std::unordered_map<int64_t, pooling_forward> pool2dMap;
 
 extern "C" MLIR_CPU_OPS_EXPORT void
@@ -189,7 +157,6 @@ mcpuPool2d(float *input, float *output, int64_t N, int64_t C, int64_t H,
            int64_t W, int64_t OH, int64_t OW, int64_t KH, int64_t KW,
            int64_t PHL, int64_t PWL, int64_t PHR, int64_t PWR, int64_t SH,
            int64_t SW, int64_t method) {
-  // llvm::SmallVector<int64_t> poolKey{N, C, H, OH, KH, PHL, SH, method};
   std::array<int64_t, 8> keys{N, C, H, OH, KH, PHL, SH, method};
   int64_t poolKey = XXH3_64bits(keys.data(), keys.size() * sizeof(int64_t));
 
@@ -218,7 +185,7 @@ mcpuPool2d(float *input, float *output, int64_t N, int64_t C, int64_t H,
         strideDims, kernelDims, dilationDims, paddingDimsL, paddingDimsR);
 
     poolPrim = pooling_forward(poolPd);
-    // pool2dMap.insert({poolKey, poolPrim});
+
     pool2dMap.emplace(poolKey, poolPrim);
   }
 
