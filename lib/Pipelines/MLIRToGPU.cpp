@@ -1,3 +1,4 @@
+#include "multi-device-model-compiler/Conversion/ConvertONNXToTosa/ConvertONNXToTosa.h"
 #include "multi-device-model-compiler/Conversion/ConvertDeviceToLLVM/ConvertDeviceToLLVM.h"
 #include "multi-device-model-compiler/Conversion/ConvertGPUToNVVM/ConvertGPUToNVVM.h"
 #include "multi-device-model-compiler/Conversion/ConvertMemrefToGPU/ConvertMemrefToGPU.h"
@@ -44,6 +45,7 @@
 #include "mlir/Transforms/Passes.h"
 
 void multi_device::pipelines::createMLIRToGPUPipeline(mlir::OpPassManager &pm) {
+  pm.addPass(multi_device::createFrontendToTosaLoweringFix());
   device::AddDeviceTypeToFuncOptions deviceOptions;
   deviceOptions.deviceType = device::DeviceType::GPU;
   pm.addPass(device::createAddDeviceTypeToFuncPass(deviceOptions));

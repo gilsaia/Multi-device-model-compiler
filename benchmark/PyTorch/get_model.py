@@ -13,7 +13,7 @@ sys.path.append(root_dir)
 from data_util import load_data_raw, save_data
 
 
-from Models import Linear, Relu, Resnet, Conv, MaxPool, Compat
+from Models import Linear, Relu, Resnet, Conv, MaxPool, Compat, LLM
 
 
 def get_model(model: str):
@@ -29,6 +29,8 @@ def get_model(model: str):
         return MaxPool.get_default_model()
     elif model == "compat":
         return Compat.get_default_model()
+    elif model == "decoder_layer":
+        return LLM.get_qwen1_8B_layer()
     raise NotImplementedError("Wrong model name")
 
 
@@ -52,7 +54,7 @@ def save_onnx(model_name: str, input_shape: str, output: str):
         data = torch.rand(input)
         input_data.append(data)
     output_name = f"{output}/{model_name}.onnx"
-    torch.onnx.export(model, tuple(input_data), output_name, opset_version=13)
+    torch.onnx.export(model, tuple(input_data), output_name, opset_version=14)
 
 
 def parse_args():
