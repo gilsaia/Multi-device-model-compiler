@@ -1,6 +1,8 @@
 #include "multi-device-model-compiler/Conversion/ConvertDeviceToLLVM/ConvertDeviceToLLVM.h"
 #include "multi-device-model-compiler/Conversion/ConvertGPUToNVVM/ConvertGPUToNVVM.h"
 #include "multi-device-model-compiler/Conversion/ConvertMemrefToGPU/ConvertMemrefToGPU.h"
+#include "multi-device-model-compiler/Conversion/ConvertTosaToDevice/ConvertTosaToDevice.h"
+#include "multi-device-model-compiler/Conversion/ConvertTosaToLinalg/ConvertTosaToLinalgSaveTensor.h"
 #include "multi-device-model-compiler/Dialect/Device/Transform/Passes.h"
 #include "multi-device-model-compiler/Dialect/ONNX/Transform/Passes.h"
 #include "multi-device-model-compiler/Pipelines/ConvertPipelines.h"
@@ -33,6 +35,7 @@
 #include "mlir/Dialect/LLVMIR/Transforms/OptimizeForNVVM.h"
 #include "mlir/Dialect/LLVMIR/Transforms/Passes.h"
 #include "mlir/Dialect/Linalg/Passes.h"
+#include "mlir/Dialect/MemRef/Transforms/Passes.h"
 #include "mlir/Dialect/NVGPU/Transforms/Passes.h"
 #include "mlir/Dialect/SCF/Transforms/Passes.h"
 #include "mlir/Dialect/Tensor/Transforms/Passes.h"
@@ -46,55 +49,83 @@ void multi_device::pipelines::createMLIRToGPUPipeline(mlir::OpPassManager &pm) {
   pm.addPass(device::createAddDeviceTypeToFuncPass(deviceOptions));
   pm.addPass(multi_device::createEliminateEntryPointPass());
   pm.addPass(mlir::tosa::createTosaInferShapesPass());
-  pm.addPass(mlir::tosa::createTosaLayerwiseConstantFoldPass());
+  //   pm.addPass(mlir::tosa::createTosaLayerwiseConstantFoldPass());
   pm.addPass(mlir::tosa::createTosaMakeBroadcastablePass());
   pm.addPass(mlir::tosa::createTosaInferShapesPass());
   pm.addPass(mlir::tosa::createTosaValidationPass());
+
+  pm.addPass(multi_device::createTosaLowerToDevice());
+  pm.addPass(multi_device::createTosaLowerToLinalgSaveTensor());
   pm.addNestedPass<mlir::func::FuncOp>(mlir::tosa::createTosaToLinalgNamed());
+  pm.addPass(mlir::tosa::createTosaLayerwiseConstantFoldPass());
   pm.addNestedPass<mlir::func::FuncOp>(mlir::tosa::createTosaToLinalg());
   pm.addNestedPass<mlir::func::FuncOp>(mlir::tosa::createTosaToArith());
   pm.addNestedPass<mlir::func::FuncOp>(mlir::arith::createArithExpandOpsPass());
   pm.addNestedPass<mlir::func::FuncOp>(mlir::tosa::createTosaToTensor());
   pm.addPass(mlir::createConvertTensorToLinalgPass());
+  pm.addNestedPass<mlir::func::FuncOp>(mlir::createLinalgDetensorizePass());
+
   pm.addPass(mlir::createCanonicalizerPass());
-  pm.addPass(mlir::createCSEPass());
+  //   pm.addPass(mlir::createCSEPass());
+
+  pm.addPass(mlir::bufferization::createEmptyTensorEliminationPass());
   pm.addPass(mlir::bufferization::createEmptyTensorToAllocTensorPass());
-  pm.addPass(mlir::createLinalgBufferizePass());
   pm.addPass(mlir::tensor::createTensorBufferizePass());
   pm.addPass(mlir::arith::createArithBufferizePass());
   pm.addPass(mlir::func::createFuncBufferizePass());
-  pm.addPass(mlir::bufferization::createFinalizingBufferizePass());
+  pm.addPass(multi_device::device::createBufferizeOpWithAnalysis());
   pm.addPass(mlir::createCanonicalizerPass());
   pm.addPass(mlir::createCSEPass());
   pm.addPass(mlir::bufferization::createBufferDeallocationPass());
+
+  pm.addPass(mlir::bufferization::createBufferDeallocationSimplificationPass());
+  pm.addPass(mlir::memref::createExpandStridedMetadataPass());
+  pm.addPass(mlir::bufferization::createBufferHoistingPass());
+  pm.addPass(mlir::memref::createFoldMemRefAliasOpsPass());
+  pm.addPass(mlir::memref::createNormalizeMemRefsPass());
+  pm.addPass(mlir::bufferization::createFinalizingBufferizePass());
+
   pm.addPass(mlir::createConvertLinalgToAffineLoopsPass());
-  pm.addPass(mlir::affine::createAffineExpandIndexOpsPass());
   pm.addPass(mlir::affine::createAffineLoopNormalizePass());
-  pm.addPass(mlir::affine::createAffineDataCopyGenerationPass(0, 1, 0));
-  pm.addPass(mlir::affine::createLoopFusionPass());
-  // TODO: vectorize
-  pm.addPass(mlir::affine::createLoopCoalescingPass());
+  pm.addPass(mlir::affine::createAffineLoopInvariantCodeMotionPass());
+  pm.addPass(mlir::affine::createAffineExpandIndexOpsPass());
   pm.addPass(mlir::affine::createSimplifyAffineStructuresPass());
+  pm.addPass(mlir::affine::createLoopFusionPass(0, 0, true));
+  pm.addPass(mlir::affine::createAffineDataCopyGenerationPass(0, 1, 0));
+  pm.addPass(multi_device::device::createDeviceDataCopyGeneration());
+  pm.addPass(mlir::affine::createLoopFusionPass(1, 0, true));
+  //   pm.addPass(multi_device::device::createVectorizeAffineForDevice());
+  //   pm.addPass(mlir::affine::createLoopCoalescingPass());
+  pm.addPass(multi_device::device::createCoalesceAffineForDevice());
+  pm.addPass(mlir::affine::createSimplifyAffineStructuresPass());
+  pm.addPass(mlir::affine::createAffineLoopNormalizePass());
+  pm.addPass(mlir::affine::createAffineExpandIndexOpsPass());
   pm.addPass(mlir::affine::createAffineScalarReplacementPass());
-  // auto affineVecConfig = mlir::affine::AffineVectorizeOptions();
-  // std::vector<int64_t> vecSizes{32}, testFastestSizes{0};
-  // affineVecConfig.vectorSizes = vecSizes;
-  // affineVecConfig.fastestVaryingPattern = testFastestSizes;
-  // pm.addPass(mlir::affine::createAffineVectorize(affineVecConfig));
+  pm.addPass(mlir::affine::createLoopFusionPass(1, 0, true));
+
   pm.addPass(mlir::affine::createPipelineDataTransferPass());
+  pm.addPass(mlir::createCanonicalizerPass());
+  pm.addPass(mlir::createCSEPass());
+  pm.addPass(mlir::affine::createSimplifyAffineStructuresPass());
   pm.addPass(mlir::affine::createAffineParallelizePass());
   pm.addPass(mlir::createLowerAffinePass());
   pm.addPass(mlir::createCanonicalizerPass());
   pm.addPass(mlir::createCSEPass());
   pm.addPass(mlir::createParallelLoopSpecializationPass());
-  pm.addPass(multi_device::device::createTilingAffineForGPU());
-  //   pm.addPass(mlir::createParallelLoopTilingPass({32, 32, 32}));
+  pm.addPass(mlir::createCanonicalizerPass());
+  pm.addPass(mlir::createCSEPass());
+
+  pm.addPass(multi_device::device::createTilingScfParallelDevice());
+  pm.addPass(mlir::createLowerAffinePass());
+  pm.addPass(mlir::createParallelLoopSpecializationPass());
   pm.addPass(mlir::createGpuMapParallelLoopsPass());
   pm.addPass(mlir::createParallelLoopToGpuPass());
   pm.addPass(multi_device::createConvertMemrefToGPU());
+  pm.addPass(multi_device::device::createFoldGPUMemcpy());
   pm.addPass(multi_device::device::createEliminateGPUMemrefSpace());
   pm.addPass(mlir::createGpuLauchSinkIndexComputationsPass());
   pm.addPass(mlir::createGpuKernelOutliningPass());
+  pm.addPass(multi_device::device::createCombineGPUKernel());
   pm.addPass(mlir::createGpuAsyncRegionPass());
   pm.addNestedPass<mlir::func::FuncOp>(
       multi_device::device::createAsyncDependencyConvert());

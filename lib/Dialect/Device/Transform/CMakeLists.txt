@@ -3,7 +3,14 @@ AddDeviceTypeToFunc.cpp
 AsyncDependencyConvert.cpp
 OffloadingLLVMToGPU.cpp 
 EliminateGPUMemrefSpace.cpp
-TilingAffineForGPU.cpp)
+TilingScfParallelDevice.cpp
+BufferizeOpWithAnalysis.cpp
+VectorizeAffineForDevice.cpp
+BufferizeOpInterfaceImpl.cpp
+CoalesceAffineForDevice.cpp
+CombineGPUKernel.cpp
+FoldGPUMemcpy.cpp
+DeviceDataCopyGeneration.cpp)
 
 add_dependencies(MultiDeviceDevicePass MultiDeviceDevicePassIncGen)
 
@@ -12,6 +19,7 @@ MultiDeviceDeviceDialect
 MLIRBuiltinToLLVMIRTranslation
 MLIRGPUDialect
 MLIRSCFTransforms
+MLIRLinalgTransforms
 MLIRIR
 MLIRLLVMDialect
 MLIRLLVMToLLVMIRTranslation)

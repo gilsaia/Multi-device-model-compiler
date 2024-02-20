@@ -1,5 +1,6 @@
 add_library(ConvertTosaToTPU STATIC ConvertTosaToTPU.cpp
 Math/ElementWise.cpp
+Math/Matmul.cpp
 Tensor/Tensor.cpp)
 add_dependencies(ConvertTosaToTPU MultiDeviceConversionPassIncGen)
 target_link_libraries(ConvertTosaToTPU PUBLIC

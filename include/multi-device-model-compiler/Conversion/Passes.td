@@ -67,6 +67,39 @@ def TosaLowerToTPU: Pass<"convert-tosa-to-tpu","mlir::func::FuncOp">{
        ];
 }
 
+def TosaLowerToLinalgSaveTensor: Pass<"convert-tosa-to-linalg-save-tensor","mlir::ModuleOp"> {
+       let summary = "Lower tosa ops to Linalg,which try to reuse tensor.";
+       let dependentDialects = [
+              "mlir::linalg::LinalgDialect",
+              "mlir::arith::ArithDialect",
+              "mlir::math::MathDialect",
+              "mlir::tensor::TensorDialect",
+              "mlir::scf::SCFDialect"
+       ];
+}
+
+def TosaLowerToDevice: Pass<"convert-tosa-to-device","mlir::ModuleOp"> {
+       let summary = "Lower tosa op to device op,with specific op accerlate.";
+       let dependentDialects = [
+              "mlir::linalg::LinalgDialect",
+              "multi_device::device::DeviceDialect",
+              "mlir::tensor::TensorDialect",
+              "mlir::tosa::TosaDialect",
+       ];
+       let options = [
+       Option<"useLinalgConvert", "use-linalg-convert", "bool",
+              /*default=*/"true", "convert op to linalg op">
+       ];
+}
+
+def DeviceLowerToTPU: Pass<"convert-device-to-tpu","mlir::ModuleOp"> {
+       let summary = "Lower device op to tpu op.";
+       let dependentDialects = [
+              "tpu_mlir::top::TopDialect",
+              "tpu_mlir::tpu::TpuDialect"
+       ];
+}
+
 def FrontendToTosaLoweringFix: Pass<"convert-onnx-to-tosa-fix","mlir::ModuleOp"> {
        let summary="Lower frontend ops to TOSA dialect with dialect registry.";
        let dependentDialects = [

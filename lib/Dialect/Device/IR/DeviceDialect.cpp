@@ -61,71 +61,135 @@ static void printAsyncDependencies(OpAsmPrinter &printer, Operation *op,
 } // namespace
 
 //===----------------------------------------------------------------------===//
-// Device_WaitOp
+// Device_MatmulOp
 //===----------------------------------------------------------------------===//
 
-// namespace {
+LogicalResult MatmulOp::verify() {
+  auto inputShape = getInput().getType().getShape(),
+       weightShape = getWeight().getType().getShape(),
+       biasShape = getBias().getType().getShape(),
+       outputShape = getOutput().getType().getShape();
+  if (weightShape.size() != 2 || inputShape.back() != weightShape[0]) {
+    return failure();
+  }
+  if (biasShape.back() != weightShape[1]) {
+    return failure();
+  }
+  if (biasShape.size() > 1) {
+    for (auto shape : biasShape.drop_back()) {
+      if (shape != 1) {
+        return failure();
+      }
+    }
+  }
+  if (inputShape.size() != outputShape.size() ||
+      outputShape.back() != weightShape.back()) {
+    return failure();
+  }
+  for (auto [input, output] :
+       llvm::zip(inputShape.drop_back(), outputShape.drop_back())) {
+    if (input != output) {
+      return failure();
+    }
+  }
+  if (getAsyncToken()) {
+    if (getAsyncDependencies().size() != 1) {
+      return failure();
+    }
+  }
+  return success();
+}
 
-// struct EraseRedundantDeviceWaitOpPairs : public OpRewritePattern<WaitOp> {
-// public:
-//   using OpRewritePattern::OpRewritePattern;
+void MatmulOp::getEffects(
+    llvm::SmallVectorImpl<SideEffects::EffectInstance<MemoryEffects::Effect>>
+        &effects) {
+  effects.emplace_back(MemoryEffects::Read::get(), getInput());
+  effects.emplace_back(MemoryEffects::Read::get(), getWeight());
+  effects.emplace_back(MemoryEffects::Read::get(), getBias());
+  effects.emplace_back(MemoryEffects::Read::get(), getOutput());
+  effects.emplace_back(MemoryEffects::Write::get(), getOutput());
+}
 
-//   LogicalResult matchAndRewrite(WaitOp op,
-//                                 PatternRewriter &rewriter) const final {
-//     auto predicate = [](Value value) {
-//       auto waitOp = value.getDefiningOp<WaitOp>();
-//       return waitOp && waitOp->getNumOperands() == 0;
-//     };
-//     if (llvm::none_of(op.getAsyncDependencies(), predicate))
-//       return failure();
-//     SmallVector<Value> validOperands;
-//     for (Value operand : op->getOperands()) {
-//       if (predicate(operand))
-//         continue;
-//       validOperands.push_back(operand);
-//     }
-//     rewriter.updateRootInPlace(op, [&]() { op->setOperands(validOperands);
-//     }); return success();
-//   }
-// };
+void MatmulOp::addAsyncDependency(Value token) {
+  getAsyncDependenciesMutable().append(token);
+}
 
-// struct SimplifyDeviceWaitOp : public OpRewritePattern<WaitOp> {
-// public:
-//   using OpRewritePattern::OpRewritePattern;
+//===----------------------------------------------------------------------===//
+// Device_Cond2dOp
+//===----------------------------------------------------------------------===//
+LogicalResult Conv2DOp::verify() {
+  auto inputShape = getInput().getType().getShape(),
+       weightShape = getWeight().getType().getShape(),
+       biasShape = getBias().getType().getShape(),
+       outputShape = getOutput().getType().getShape();
+  if (inputShape.size() != 4 || weightShape.size() != 4 ||
+      outputShape.size() != 4) {
+    return failure();
+  }
+  if (inputShape[0] != outputShape[0] || inputShape[1] != weightShape[1] ||
+      outputShape[1] != weightShape[0]) {
+    return failure();
+  }
+  if (getPostadd()) {
+    auto postAddShape = getPostadd().getType().getShape();
+    if (postAddShape.size() != 4) {
+      return failure();
+    }
+    for (auto [post, out] : llvm::zip(postAddShape, outputShape)) {
+      if (post != out) {
+        return failure();
+      }
+    }
+  }
+  return success();
+}
 
-//   LogicalResult matchAndRewrite(WaitOp op,
-//                                 PatternRewriter &rewriter) const final {
-//     // Erase device.wait ops that neither have any async dependencies nor
-//     return
-//     // any async token.
-//     if (op.getAsyncDependencies().empty() && !op.getAsyncToken()) {
-//       rewriter.eraseOp(op);
-//       return success();
-//     }
-//     // Replace uses of %t1 = device.wait async [%t0] ops with %t0 and erase
-//     the
-//     // op.
-//     if (llvm::hasSingleElement(op.getAsyncDependencies()) &&
-//         op.getAsyncToken()) {
-//       rewriter.replaceOp(op, op.getAsyncDependencies());
-//       return success();
-//     }
-//     // Erase %t = device.wait async ... ops, where %t has no uses.
-//     if (op.getAsyncToken() && op.getAsyncToken().use_empty()) {
-//       rewriter.eraseOp(op);
-//       return success();
-//     }
-//     return failure();
-//   }
-// };
+void Conv2DOp::getEffects(
+    llvm::SmallVectorImpl<SideEffects::EffectInstance<MemoryEffects::Effect>>
+        &effects) {
+  effects.emplace_back(MemoryEffects::Read::get(), getInput());
+  effects.emplace_back(MemoryEffects::Read::get(), getWeight());
+  effects.emplace_back(MemoryEffects::Read::get(), getBias());
+  effects.emplace_back(MemoryEffects::Read::get(), getOutput());
+  effects.emplace_back(MemoryEffects::Write::get(), getOutput());
+  if (getPostadd()) {
+    effects.emplace_back(MemoryEffects::Read::get(), getPostadd());
+  }
+}
 
-// } // end anonymous namespace
+void Conv2DOp::addAsyncDependency(Value token) {
+  getAsyncDependenciesMutable().append(token);
+}
 
-// void WaitOp::getCanonicalizationPatterns(RewritePatternSet &results,
-//                                          MLIRContext *context) {
-//   results.add<EraseRedundantDeviceWaitOpPairs,
-//   SimplifyDeviceWaitOp>(context);
-// }
+//===----------------------------------------------------------------------===//
+// Device_Pool2dOp
+//===----------------------------------------------------------------------===//
+LogicalResult Pool2DOp::verify() {
+  auto inputShape = getInput().getType().getShape();
+  auto outputShape = getOutput().getType().getShape();
+
+  if (inputShape.size() != 4 || outputShape.size() != 4) {
+    return failure();
+  }
+
+  if (inputShape[0] != outputShape[0] || inputShape[1] != outputShape[1]) {
+    return failure();
+  }
+  return success();
+}
+
+void Pool2DOp::getEffects(
+    llvm::SmallVectorImpl<SideEffects::EffectInstance<MemoryEffects::Effect>>
+        &effects) {
+
+  effects.emplace_back(MemoryEffects::Read::get(), getInput());
+  effects.emplace_back(MemoryEffects::Read::get(), getOutput());
+  effects.emplace_back(MemoryEffects::Write::get(), getOutput());
+}
+
+void Pool2DOp::addAsyncDependency(Value token) {
+  getAsyncDependenciesMutable().append(token);
+}
 
 #include "multi-device-model-compiler/Dialect/Device/IR/DeviceOpsEnums.cpp.inc"
 

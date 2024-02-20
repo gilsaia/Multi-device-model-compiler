@@ -19,7 +19,7 @@ def data_diff(standard: str, compare: str):
         f"Relative diff:\tMin:{np.min(rel_diff)}\tMax:{np.max(rel_diff)}\tMean:{np.mean(rel_diff)}"
     )
 
-    bounds = [1, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5]
+    bounds = [1, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 1e-7]
     for bound in bounds:
         num = np.count_nonzero(abs_diff > bound)
         print(f"Bound {bound}:\t{num}")

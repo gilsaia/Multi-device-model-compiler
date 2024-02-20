@@ -59,14 +59,57 @@ def AsyncDependencyConvert:Pass<"async-dependency-convert","mlir::func::FuncOp">
     let dependentDialects=["multi_device::device::DeviceDialect"];
 }
 
-def TilingAffineForGPU:Pass<"tiling-affine-for-gpu","mlir::ModuleOp"> {
-    let summary="Find a proper tiling size for affine-for loop,to best use gpu power.";
+def CombineGPUKernel:Pass<"combine-gpu-kernel","mlir::ModuleOp"> {
+    let summary="Combine different gpu kernel in one module,so we can use only one file to save it.";
+    let dependentDialects=["mlir::gpu::GPUDialect"];
+}
+
+def FoldGPUMemcpy:Pass<"fold-gpu-memcpy","mlir::ModuleOp"> {
+    let summary="Fold useless memcpy like gpu-cpu-gpu without change.";
+    let dependentDialects=["mlir::gpu::GPUDialect","mlir::memref::MemRefDialect"];
+}
+
+def DeviceDataCopyGeneration:Pass<"device-data-copy-generate","mlir::ModuleOp"> {
+    let summary="Generate data copy op in gpu mode for device ops.";
+    let dependentDialects=["mlir::gpu::GPUDialect","mlir::memref::MemRefDialect"];
+}
+
+def TilingScfParallelDevice:Pass<"tiling-scf-parallel-device","mlir::ModuleOp"> {
+    let summary="Find a proper tiling size for scf-parallel loop,to best use device power.";
     let description=[{
         This pass will try to find a proper tiling size with the information of device/data.
-        for now, we assume that device better for m-block-1024-thread, thread num can decrease
+        for cpu, we assume that device better for 16-elements inside block.
+        for gpu, we assume that device better for m-block-1024-thread, thread num can decrease
         when data size is small,but better with a 2^n mode.
     }];
-    let dependentDialects=["mlir::affine::AffineDialect","mlir::scf::SCFDialect"];
+    let dependentDialects=["mlir::scf::SCFDialect"];
+    let options = [
+    Option<"totalTilingSize", "tiling-size", "int64_t", /*default=*/"1024",
+           "total tiling size for different device.">,
+    ];
+}
+
+def BufferizeOpWithAnalysis:Pass<"bufferize-op-with-analysis","mlir::ModuleOp"> {
+    let summary = "Use one-shot bufferize methods to buffer op that will not generate useless copy.";
+    let description=[{
+        This pass will use one-shot bufferize methods to buffer op,
+        which in origin linalg op will generate copy-on-use first that is useless.
+    }];
+}
+
+def VectorizeAffineForDevice:Pass<"vectorize-affine-for-device","mlir::ModuleOp"> {
+    let summary = "Vectorize affine for in different ways,try to find better vector size.";
+    let description=[{
+        This pass will vectorize affine.for op, which will try to utilize inner-most for in cpu mode,
+        will try to utilize tensor core for async device(like gpu)
+    }];
+    let options= [
+        Option<"tensorCoreMode","tensor-core-mode","bool","false","vectorize in tensor core mode">,
+    ];
+}
+
+def CoalesceAffineForDevice:Pass<"coalesce-affine-for-device","mlir::ModuleOp"> {
+    let summary = "coalesce affine for with check load dim.";
 }
 
 #endif // MULTI_DEVICE_MODEL_COMPILER_DIALECT_DEVICE_TRANSFORM_

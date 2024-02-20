@@ -1,3 +1,4 @@
+#include "multi-device-model-compiler/Kernels/CPU/Ops.h"
 #include "multi-device-model-compiler/Runtime/ModelInfo.h"
 #include "multi-device-model-compiler/Runtime/RuntimeUtil.h"
 #include "multi-device-model-compiler/Runtime/TensorDescripter.h"
@@ -31,6 +32,10 @@ llvm::cl::opt<int> RerunTimes("rerun", llvm::cl::desc("Rerun time"),
                               llvm::cl::init(0), llvm::cl::ValueRequired,
                               llvm::cl::cat(MultiDeviceCpuRunnerOptions));
 
+llvm::cl::opt<bool> FastMode("fast",
+                             llvm::cl::desc("Fast mode,with precision loss"),
+                             llvm::cl::cat(MultiDeviceCpuRunnerOptions));
+
 using namespace multi_device;
 
 int main(int argc, char **argv) {
@@ -43,6 +48,8 @@ int main(int argc, char **argv) {
     llvm::errs() << "Failed to parse options\n";
     return 1;
   }
+
+  cpuOpsInit(FastMode);
 
   ModelInfo *info = ModelInfo::ParseModelInfo();
   auto params = GetParamsVec(info);

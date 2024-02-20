@@ -53,5 +53,8 @@ examples/*.dat
 
 test/**/*.npz
 
+# benchmark onnx file
+benchmark/**/*.onnx
+
 # tpu-mlir lib
 !3rdparty/tpu-mlir/third_party/**/lib/*.so

@@ -14,7 +14,16 @@ from data_util import load_data_raw, save_data
 
 
 def profile_model(model: str, args):
-    sess = ort.InferenceSession(model, providers=["CPUExecutionProvider"])
+    options = ort.SessionOptions()
+    # options.log_severity_level = 0
+    options.enable_cpu_mem_arena = False
+    options.enable_mem_reuse = False
+    options.enable_mem_pattern = False
+    options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_DISABLE_ALL
+    # options.optimized_model_filepath = "./optim_resnet.onnx"
+    sess = ort.InferenceSession(
+        model, providers=["CPUExecutionProvider"], sess_options=options
+    )
 
     inputs: list[ort.NodeArg] = sess.get_inputs()
     input_data = []
@@ -26,7 +35,7 @@ def profile_model(model: str, args):
             input_data.append(data)
     else:
         for input_tensor in inputs:
-            data = np.random.random(input_tensor.shape)
+            data = np.random.random(input_tensor.shape).astype(np.float32)
             input_data.append(data)
 
     run_info = {}
@@ -39,8 +48,6 @@ def profile_model(model: str, args):
             output[0].astype(np.float32),
             f"{args.output}onnxruntime_cpu",
         )
-        np.set_printoptions(threshold=np.inf)
-        print(f"{output[0].astype(np.float32)}")
 
     if args.rerun != 0:
         start_time = time.perf_counter()

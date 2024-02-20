@@ -10,3 +10,9 @@
 [submodule "3rdparty/oneDNN"]
 	path = 3rdparty/oneDNN
 	url = git@github.com:oneapi-src/oneDNN.git
+[submodule "3rdparty/oneTBB"]
+	path = 3rdparty/oneTBB
+	url = git@github.com:oneapi-src/oneTBB.git
+[submodule "3rdparty/xxHash"]
+	path = 3rdparty/xxHash
+	url = git@github.com:Cyan4973/xxHash.git
