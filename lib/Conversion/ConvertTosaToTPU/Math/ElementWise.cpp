@@ -58,9 +58,12 @@ public:
       rewriter.replaceOp(op, defineOp);
       return success();
     } else {
+      double minFp = op.getMinFp().convertToDouble(),
+             maxFp = op.getMaxFp().convertToDouble();
       auto clip = rewriter.create<tpu::ClipOp>(
-          op.getLoc(), op.getOutput().getType(), op.getInput(), op.getMinFp(),
-          op.getMaxFp(), nullptr);
+          op.getLoc(), op.getOutput().getType(), op.getInput(),
+          rewriter.getF64FloatAttr(minFp), rewriter.getF64FloatAttr(maxFp),
+          nullptr);
       rewriter.replaceOp(op, clip);
       return success();
     }

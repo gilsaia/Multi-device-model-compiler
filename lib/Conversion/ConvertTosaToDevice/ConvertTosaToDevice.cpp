@@ -17,14 +17,18 @@ namespace multi_device {
 
 void populateTosaToDeviceConversionPattern(mlir::ConversionTarget &target,
                                            mlir::RewritePatternSet &patterns,
-                                           mlir::MLIRContext &ctx) {
+                                           mlir::MLIRContext &ctx,
+                                           bool convertLinalg) {
   conversion::populateTosaFullConnectToMatmulConversionPattern(target, patterns,
                                                                ctx);
-  conversion::populateTosaClampToLinalgConversionPattern(target, patterns, ctx);
   conversion::populateTosaConv2dLoweringConversionPattern(target, patterns,
                                                           ctx);
   conversion::populateTosaPool2dLoweringConversionPattern(target, patterns,
                                                           ctx);
+  if (convertLinalg) {
+    conversion::populateTosaClampToLinalgConversionPattern(target, patterns,
+                                                           ctx);
+  }
 }
 } // namespace multi_device
 
@@ -33,6 +37,8 @@ class TosaToDevicePass final
     : public multi_device::impl::TosaLowerToDeviceBase<TosaToDevicePass> {
 public:
   using TosaLowerToDeviceBase::TosaLowerToDeviceBase;
+  TosaToDevicePass(const multi_device::TosaLowerToDeviceOptions &options)
+      : TosaLowerToDeviceBase(options) {}
   void runOnOperation() override final;
 };
 } // namespace
@@ -46,8 +52,8 @@ void TosaToDevicePass::runOnOperation() {
                          arith::ArithDialect, tensor::TensorDialect,
                          linalg::LinalgDialect>();
 
-  multi_device::populateTosaToDeviceConversionPattern(target, patterns,
-                                                      getContext());
+  multi_device::populateTosaToDeviceConversionPattern(
+      target, patterns, getContext(), useLinalgConvert);
   if (failed(applyPartialConversion(moduleOp, target, std::move(patterns)))) {
     signalPassFailure();
   }

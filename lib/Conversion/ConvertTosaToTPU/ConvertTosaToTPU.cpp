@@ -178,8 +178,8 @@ void TosaLoweringToTPUPass::runOnOperation() {
   });
 
   target.addLegalDialect<func::FuncDialect, top::TopDialect, tpu::TpuDialect>();
-  target.addLegalOp<tosa::ReshapeOp, tosa::TransposeOp>();
-  target.addIllegalOp<tosa::FullyConnectedOp, tosa::AddOp, tosa::ConstOp>();
+  target.addIllegalOp<tosa::FullyConnectedOp, tosa::AddOp, tosa::ConstOp,
+                      tosa::ReshapeOp>();
 
   populateTosaToTPUConversionPattern(target, patterns, typeConverter, context);
 

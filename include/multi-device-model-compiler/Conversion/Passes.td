@@ -81,9 +81,22 @@ def TosaLowerToLinalgSaveTensor: Pass<"convert-tosa-to-linalg-save-tensor","mlir
 def TosaLowerToDevice: Pass<"convert-tosa-to-device","mlir::ModuleOp"> {
        let summary = "Lower tosa op to device op,with specific op accerlate.";
        let dependentDialects = [
+              "mlir::linalg::LinalgDialect",
               "multi_device::device::DeviceDialect",
               "mlir::tensor::TensorDialect",
               "mlir::tosa::TosaDialect",
+       ];
+       let options = [
+       Option<"useLinalgConvert", "use-linalg-convert", "bool",
+              /*default=*/"true", "convert op to linalg op">
+       ];
+}
+
+def DeviceLowerToTPU: Pass<"convert-device-to-tpu","mlir::ModuleOp"> {
+       let summary = "Lower device op to tpu op.";
+       let dependentDialects = [
+              "tpu_mlir::top::TopDialect",
+              "tpu_mlir::tpu::TpuDialect"
        ];
 }
 
