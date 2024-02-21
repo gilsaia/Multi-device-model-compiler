@@ -169,6 +169,86 @@ struct Pool2dOpInterface
     return success();
   }
 };
+
+struct MultiHeadAttentionLayerInterface
+    : public bufferization::BufferizableOpInterface::ExternalModel<
+          MultiHeadAttentionLayerInterface,
+          multi_device::device::MultiHeadAttentionLayer> {
+  bool bufferizesToMemoryRead(Operation *op, OpOperand &opOperand,
+                              const bufferization::AnalysisState &state) const {
+    if (opOperand.getOperandNumber() < 8) {
+      return true;
+    }
+    return false;
+  }
+  bool
+  bufferizesToMemoryWrite(Operation *op, OpOperand &opOperand,
+                          const bufferization::AnalysisState &state) const {
+    if (opOperand.getOperandNumber() == 8) {
+      return true;
+    }
+    return false;
+  }
+
+  bufferization::AliasingValueList
+  getAliasingValues(Operation *op, OpOperand &opOperand,
+                    const bufferization::AnalysisState &state) const {
+    return {};
+  }
+
+  LogicalResult
+  bufferize(Operation *op, RewriterBase &rewriter,
+            const bufferization::BufferizationOptions &options) const {
+    auto multiHeadAttentionLayer =
+        cast<multi_device::device::MultiHeadAttentionLayer>(op);
+
+    auto inputMem = bufferization::getBuffer(
+             rewriter, multiHeadAttentionLayer.getInput(), options),
+         qkvMem = bufferization::getBuffer(
+             rewriter, multiHeadAttentionLayer.getQKV(), options),
+         attnGemmWeightMem = bufferization::getBuffer(
+             rewriter, multiHeadAttentionLayer.getAttnGemmWeight(), options),
+         attnGemmBiasMem = bufferization::getBuffer(
+             rewriter, multiHeadAttentionLayer.getAttnGemmBias(), options),
+         ffn1WeightMem = bufferization::getBuffer(
+             rewriter, multiHeadAttentionLayer.getFfn1Weight(), options),
+         ffn1BiasMem = bufferization::getBuffer(
+             rewriter, multiHeadAttentionLayer.getFfn1Bias(), options),
+         ffn2WeightMem = bufferization::getBuffer(
+             rewriter, multiHeadAttentionLayer.getFfn2Weight(), options),
+         ffn2BiasMem = bufferization::getBuffer(
+             rewriter, multiHeadAttentionLayer.getFfn2Bias(), options),
+         outputMem = bufferization::getBuffer(
+             rewriter, multiHeadAttentionLayer.getOutput(), options);
+
+    if (failed(inputMem) || failed(qkvMem) || failed(attnGemmWeightMem) ||
+        failed(attnGemmBiasMem) || failed(ffn1WeightMem) ||
+        failed(ffn1BiasMem) || failed(ffn2WeightMem) || failed(ffn2BiasMem) ||
+        failed(outputMem)) {
+      return failure();
+    }
+
+    bufferization::replaceOpWithNewBufferizedOp<
+        multi_device::device::MultiHeadAttentionLayer>(
+        rewriter, op, TypeRange(), /*input*/ *inputMem, /*qkv*/ *qkvMem,
+        /*attn gemm weight*/ *attnGemmWeightMem,
+        /*attn gemm bias*/ *attnGemmBiasMem,
+        /*feed forward 1 weight*/ *ffn1WeightMem,
+        /*feed forward 1 bias*/ *ffn1BiasMem,
+        /*feed forward 2 weight*/ *ffn2WeightMem,
+        /*feed forward 2 bias*/ *ffn2BiasMem, /*output tensor*/ *outputMem,
+        ValueRange(), /*batch*/ multiHeadAttentionLayer.getBatchAttr(),
+        /*seq_len*/ multiHeadAttentionLayer.getSeqLenAttr(),
+        /*d_model*/ multiHeadAttentionLayer.getDModelAttr(),
+        /*feed forward dim*/ multiHeadAttentionLayer.getFeedForwardDimAttr(),
+        /*head num*/ multiHeadAttentionLayer.getHeadNumAttr(),
+        /*norm first*/ multiHeadAttentionLayer.getNormFirstAttr(),
+        /*is casual*/ multiHeadAttentionLayer.getIsCasualAttr(),
+        /*act*/ multiHeadAttentionLayer.getActAttr());
+
+    return success();
+  }
+};
 } // namespace
 
 void multi_device::device::registerBufferizableOpInterfaceExternalModels(
@@ -177,5 +257,7 @@ void multi_device::device::registerBufferizableOpInterfaceExternalModels(
     MatmulOp::attachInterface<MatmulOpInterface>(*ctx);
     Conv2DOp::attachInterface<Conv2dOpInterface>(*ctx);
     Pool2DOp::attachInterface<Pool2dOpInterface>(*ctx);
+    MultiHeadAttentionLayer::attachInterface<MultiHeadAttentionLayerInterface>(
+        *ctx);
   });
 }

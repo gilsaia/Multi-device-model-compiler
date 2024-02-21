@@ -3,6 +3,8 @@
 
 #include "src/Dialect/ONNX/ONNXOps.hpp"
 
+#include "mlir/Dialect/Tensor/IR/Tensor.h"
+
 using namespace mlir;
 
 namespace multi_device {
@@ -26,6 +28,9 @@ void ONNXLowerToDevicePass::runOnOperation() {
   ConversionTarget target(*context);
 
   TypeConverter typeConverter;
+
+  target.addLegalDialect<multi_device::device::DeviceDialect,
+                         tensor::TensorDialect, ONNXDialect>();
 
   multi_device::conversion::populateDetectMultiHeadAttentionLayerPattern(
       target, patterns, typeConverter, *context);

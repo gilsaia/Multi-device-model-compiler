@@ -200,7 +200,8 @@ void MultiHeadAttentionLayer::getEffects(
 
   effects.emplace_back(MemoryEffects::Read::get(), getInput());
   effects.emplace_back(MemoryEffects::Read::get(), getQKV());
-  effects.emplace_back(MemoryEffects::Read::get(), getPaddingMask());
+  effects.emplace_back(MemoryEffects::Read::get(), getAttnGemmWeight());
+  effects.emplace_back(MemoryEffects::Read::get(), getAttnGemmBias());
   effects.emplace_back(MemoryEffects::Read::get(), getFfn1Weight());
   effects.emplace_back(MemoryEffects::Read::get(), getFfn1Bias());
   effects.emplace_back(MemoryEffects::Read::get(), getFfn2Weight());

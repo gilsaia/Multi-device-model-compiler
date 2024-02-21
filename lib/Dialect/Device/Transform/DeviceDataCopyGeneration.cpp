@@ -109,4 +109,61 @@ void DeviceDataCopyGenerationPass::runOnOperation() {
     pool2d.setOperand(0, inputAlloc.getResult(0));
     pool2d.setOperand(1, outputAlloc.getResult(0));
   });
+  moduleOp.walk([&ctx, &builder](multi_device::device::MultiHeadAttentionLayer
+                                     multiHeadLayer) {
+    builder.setInsertionPoint(multiHeadLayer);
+    auto inputType = multiHeadLayer.getInput().getType().cast<MemRefType>(),
+         qkvType = multiHeadLayer.getQKV().getType().cast<MemRefType>(),
+         attnGemmWeightType =
+             multiHeadLayer.getAttnGemmWeight().getType().cast<MemRefType>(),
+         attnGemmBiasType =
+             multiHeadLayer.getAttnGemmBias().getType().cast<MemRefType>(),
+         ffn1WeightType =
+             multiHeadLayer.getFfn1Weight().getType().cast<MemRefType>(),
+         ffn1BiasType =
+             multiHeadLayer.getFfn1Bias().getType().cast<MemRefType>(),
+         ffn2WeightType =
+             multiHeadLayer.getFfn2Weight().getType().cast<MemRefType>(),
+         ffn2BiasType =
+             multiHeadLayer.getFfn2Bias().getType().cast<MemRefType>(),
+         outputType = multiHeadLayer.getOutput().getType().cast<MemRefType>();
+
+    auto inputAlloc = GenDataAllocAndCpy(
+        multiHeadLayer, builder, multiHeadLayer.getInput(), inputType, true);
+    auto qkvAlloc = GenDataAllocAndCpy(multiHeadLayer, builder,
+                                       multiHeadLayer.getQKV(), qkvType, true);
+    auto attnGemmWeightAlloc = GenDataAllocAndCpy(
+        multiHeadLayer, builder, multiHeadLayer.getAttnGemmWeight(),
+        attnGemmWeightType, true);
+    auto attnGemmBiasAlloc = GenDataAllocAndCpy(
+        multiHeadLayer, builder, multiHeadLayer.getAttnGemmBias(),
+        attnGemmBiasType, true);
+    auto ffn1WeightAlloc = GenDataAllocAndCpy(multiHeadLayer, builder,
+                                              multiHeadLayer.getFfn1Weight(),
+                                              ffn1WeightType, true);
+    auto ffn1BiasAlloc =
+        GenDataAllocAndCpy(multiHeadLayer, builder,
+                           multiHeadLayer.getFfn1Bias(), ffn1BiasType, true);
+    auto ffn2WeightAlloc = GenDataAllocAndCpy(multiHeadLayer, builder,
+                                              multiHeadLayer.getFfn2Weight(),
+                                              ffn2WeightType, true);
+    auto ffn2BiasAlloc =
+        GenDataAllocAndCpy(multiHeadLayer, builder,
+                           multiHeadLayer.getFfn2Bias(), ffn2BiasType, true);
+    auto outputAlloc = GenDataAllocAndCpy(
+        multiHeadLayer, builder, multiHeadLayer.getOutput(), outputType, false);
+    builder.setInsertionPointAfter(multiHeadLayer);
+    builder.create<gpu::MemcpyOp>(multiHeadLayer.getLoc(), TypeRange(),
+                                  ValueRange(), multiHeadLayer.getOutput(),
+                                  outputAlloc.getResult(0));
+    multiHeadLayer.setOperand(0, inputAlloc.getResult(0));
+    multiHeadLayer.setOperand(1, qkvAlloc.getResult(0));
+    multiHeadLayer.setOperand(2, attnGemmWeightAlloc.getResult(0));
+    multiHeadLayer.setOperand(3, attnGemmBiasAlloc.getResult(0));
+    multiHeadLayer.setOperand(4, ffn1WeightAlloc.getResult(0));
+    multiHeadLayer.setOperand(5, ffn1BiasAlloc.getResult(0));
+    multiHeadLayer.setOperand(6, ffn2WeightAlloc.getResult(0));
+    multiHeadLayer.setOperand(7, ffn2BiasAlloc.getResult(0));
+    multiHeadLayer.setOperand(8, outputAlloc.getResult(0));
+  });
 }

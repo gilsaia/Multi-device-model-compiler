@@ -148,8 +148,9 @@ def Device_MultiHeadAttentionLayer : Device_Op<"multi-head-attention-layer",[
 
     let arguments = (ins
         AnyShaped:$input,
-        AnyShaped:$padding_mask,
         AnyShaped:$QKV,
+        AnyShaped:$attn_gemm_weight,
+        AnyShaped:$attn_gemm_bias,
         AnyShaped:$ffn1_weight,
         AnyShaped:$ffn1_bias,
         AnyShaped:$ffn2_weight,
@@ -157,11 +158,14 @@ def Device_MultiHeadAttentionLayer : Device_Op<"multi-head-attention-layer",[
         AnyShaped:$output,
         Variadic<GPU_AsyncToken>:$asyncDependencies,
 
-        F32Attr:$scale_factor,
+        // F32Attr:$scale_factor,
+        I64Attr:$batch,
+        I64Attr:$seq_len,
         I64Attr:$d_model,
         I64Attr:$feed_forward_dim,
         I64Attr:$head_num,
         BoolAttr:$norm_first,
+        BoolAttr:$is_casual,
         StrAttr:$act
     );
 
@@ -170,8 +174,8 @@ def Device_MultiHeadAttentionLayer : Device_Op<"multi-head-attention-layer",[
         custom<AsyncDependencies>(type($asyncToken), $asyncDependencies)
         `{` 
         `input` $input `:` type($input) `,`
-        `padding_mask` $padding_mask `:` type($padding_mask) `,`
         `QKV` $QKV `:` type($QKV) `,`
+        `ATTN_GEMM` $attn_gemm_weight $attn_gemm_bias `:` type($attn_gemm_weight) type($attn_gemm_bias) `,`
         `FFN1` $ffn1_weight $ffn1_bias `:` type($ffn1_weight) type($ffn1_bias) `,`
         `FFN2` $ffn2_weight $ffn2_bias `:` type($ffn2_weight) type($ffn2_bias) `,`
         `output` $output `:` type($output) `,`

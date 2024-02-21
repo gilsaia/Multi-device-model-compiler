@@ -95,7 +95,8 @@ def TosaLowerToDevice: Pass<"convert-tosa-to-device","mlir::ModuleOp"> {
 def ONNXLowerToDevice: Pass<"convert-onnx-to-device","mlir::ModuleOp"> {
        let summary = "Try to fuse big ops like DecodingLayer.";
        let dependentDialects = [
-              "multi_device::device::DeviceDialect"
+              "multi_device::device::DeviceDialect",
+              "mlir::tensor::TensorDialect"
        ];
 }
 
