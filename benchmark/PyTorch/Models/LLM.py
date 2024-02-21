@@ -5,7 +5,9 @@ from torch import nn
 class Decoder(nn.Module):
     def __init__(self, d_model, head_num) -> None:
         super().__init__()
-        self.encoder = nn.TransformerEncoderLayer(d_model, head_num, batch_first=True)
+        self.encoder = nn.TransformerEncoderLayer(
+            d_model, head_num, batch_first=True, norm_first=True
+        )
 
     def forward(self, x: torch.Tensor):
         shapes = x.shape

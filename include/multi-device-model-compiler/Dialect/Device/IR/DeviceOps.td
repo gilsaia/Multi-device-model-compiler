@@ -140,4 +140,43 @@ def Device_Pool2DOp : Device_Op<"pool2d",[
     }];
 }
 
+def Device_MultiHeadAttentionLayer : Device_Op<"multi-head-attention-layer",[    
+    DeclareOpInterfaceMethods<MemoryEffectsOpInterface>,
+    DeclareOpInterfaceMethods<GPU_AsyncOpInterface,["addAsyncDependency"]>
+    ]> {
+    let summary = "Performs decoding layer compute,include Norm MHA FFN";
+
+    let arguments = (ins
+        AnyShaped:$input,
+        AnyShaped:$padding_mask,
+        AnyShaped:$QKV,
+        AnyShaped:$ffn1_weight,
+        AnyShaped:$ffn1_bias,
+        AnyShaped:$ffn2_weight,
+        AnyShaped:$ffn2_bias,
+        AnyShaped:$output,
+        Variadic<GPU_AsyncToken>:$asyncDependencies,
+
+        F32Attr:$scale_factor,
+        I64Attr:$d_model,
+        I64Attr:$feed_forward_dim,
+        I64Attr:$head_num,
+        BoolAttr:$norm_first,
+        StrAttr:$act
+    );
+
+    let results = (outs Optional<GPU_AsyncToken>:$asyncToken);
+    let assemblyFormat = [{
+        custom<AsyncDependencies>(type($asyncToken), $asyncDependencies)
+        `{` 
+        `input` $input `:` type($input) `,`
+        `padding_mask` $padding_mask `:` type($padding_mask) `,`
+        `QKV` $QKV `:` type($QKV) `,`
+        `FFN1` $ffn1_weight $ffn1_bias `:` type($ffn1_weight) type($ffn1_bias) `,`
+        `FFN2` $ffn2_weight $ffn2_bias `:` type($ffn2_weight) type($ffn2_bias) `,`
+        `output` $output `:` type($output) `,`
+        `}` attr-dict
+    }];
+}
+
 #endif // MULTI_DEVICE_MODEL_COMPILER_DIALECT_DEVICE_OPS_
