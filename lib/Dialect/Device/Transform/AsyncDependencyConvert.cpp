@@ -119,6 +119,17 @@ void AsyncDependencyConvertPass::runOnOperation() {
           kernelStream.getAsyncToken());
       return WalkResult::advance();
     }
+    if (mlir::isa<multi_device::device::MultiHeadAttentionLayer>(op)) {
+      auto multiHeadAttentionLayer =
+          cast<multi_device::device::MultiHeadAttentionLayer>(op);
+      ::changeAsyncDependencies(
+          multiHeadAttentionLayer.getAsyncDependenciesMutable(),
+          kernelStream.getAsyncToken(), op, rewriter);
+      rewriter.create<multi_device::device::RecordOp>(
+          op.getLoc(), dataStream.getAsyncToken(),
+          kernelStream.getAsyncToken());
+      return WalkResult::advance();
+    }
     return WalkResult::advance();
   });
   rewriter.setInsertionPointAfter(funcOp.back().back().getPrevNode());

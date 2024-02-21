@@ -738,9 +738,9 @@ ConvertMultiHeadAttentionLayerToDeviceRuntimeCallPattern::matchAndRewrite(
     gpuMultiHeadAttentionLayerBuild.create(
         loc, rewriter,
         {arguments[0], arguments[1], arguments[2], arguments[3], arguments[4],
-         arguments[5], arguments[6], arguments[7], arguments[8], arguments[9],
-         batch_val, seq_len_val, d_model_val, feed_forward_dim_val,
-         head_num_val, norm_first_val, is_casual_val, is_relu_val,
+         arguments[5], arguments[6], arguments[7], arguments[8], batch_val,
+         seq_len_val, d_model_val, feed_forward_dim_val, head_num_val,
+         norm_first_val, is_casual_val, is_relu_val,
          adaptor.getAsyncDependencies()[0]});
   } else {
     return rewriter.notifyMatchFailure(multiHeadAttentionLayer, "wrong device");
