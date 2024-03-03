@@ -44,12 +44,14 @@ void gpuOpsInit() {
   checkCublasStatus(cublasLtCreate(&ltHandle));
   checkCudaStatus(cudaMalloc(&workspace, workspaceSize));
   checkCudnnStatus(cudnnCreate(&cudnnHandle));
+  gpuLLMOpsInit();
 }
 
 void gpuOpsDeinit() {
   checkCudnnStatus(cudnnDestroy(cudnnHandle));
   checkCublasStatus(cublasLtDestroy(ltHandle));
   checkCudaStatus(cudaFree(workspace));
+  gpuLLMOpsDeinit();
 }
 
 static std::unordered_map<int64_t, cublasLtMatmulHeuristicResult_t> matmulMap;
@@ -116,6 +118,120 @@ extern "C" MLIR_GPU_OPS_EXPORT void mgpuMatmul(float *input, float *weight,
   if (operationDesc)
     checkCublasStatus(cublasLtMatmulDescDestroy(operationDesc));
 }
+
+template <typename T> cudaDataType_t getElementsType() {
+  if (std::is_same<T, float>()) {
+    return CUDA_R_32F;
+  }
+  if (std::is_same<T, half>()) {
+    return CUDA_R_16F;
+  }
+  return CUDA_R_32F;
+}
+template cudaDataType_t getElementsType<float>();
+template cudaDataType_t getElementsType<half>();
+
+static std::unordered_map<int64_t, cublasLtMatmulHeuristicResult_t> matmulExMap;
+
+template <typename T>
+MLIR_GPU_OPS_EXPORT void mgpuMatmulEx(T *input, T *weight, T *bias, T *output,
+                                      T *residual, int64_t M, int64_t N,
+                                      int64_t K, bool hasBias, bool hasRelu,
+                                      bool hasResidual, cudaStream_t stream) {
+  std::array<int64_t, 7> keys{M,       N,           K,        hasBias,
+                              hasRelu, hasResidual, sizeof(T)};
+  int64_t matmulExKey = XXH3_64bits(keys.data(), keys.size() * sizeof(int64_t));
+
+  cublasLtMatmulDesc_t operationDesc = NULL;
+  cublasLtMatrixLayout_t Adesc = NULL, Bdesc = NULL, Cdesc = NULL, Ddesc = NULL;
+
+  cublasLtMatmulHeuristicResult_t heuristicResult = {};
+  cublasLtMatmulPreference_t preference = NULL;
+  int returnedResults = 0;
+
+  auto epilogue = CUBLASLT_EPILOGUE_DEFAULT;
+  if (hasBias && hasRelu) {
+    epilogue = CUBLASLT_EPILOGUE_RELU_BIAS;
+  } else if (hasBias) {
+    epilogue = CUBLASLT_EPILOGUE_BIAS;
+  } else if (hasRelu) {
+    epilogue = CUBLASLT_EPILOGUE_RELU;
+  }
+
+  if (std::is_same<T, float>()) {
+    checkCublasStatus(cublasLtMatmulDescCreate(
+        &operationDesc, CUBLAS_COMPUTE_32F_FAST_TF32, CUDA_R_32F));
+  } else if (std::is_same<T, half>()) {
+    checkCublasStatus(cublasLtMatmulDescCreate(&operationDesc,
+                                               CUBLAS_COMPUTE_16F, CUDA_R_16F));
+  }
+
+  checkCublasStatus(cublasLtMatmulDescSetAttribute(
+      operationDesc, CUBLASLT_MATMUL_DESC_EPILOGUE, &epilogue,
+      sizeof(epilogue)));
+  if (hasBias) {
+    checkCublasStatus(cublasLtMatmulDescSetAttribute(
+        operationDesc, CUBLASLT_MATMUL_DESC_BIAS_POINTER, &bias,
+        sizeof(float *)));
+  }
+
+  checkCublasStatus(
+      cublasLtMatrixLayoutCreate(&Adesc, getElementsType<T>(), N, K, N));
+  checkCublasStatus(
+      cublasLtMatrixLayoutCreate(&Bdesc, getElementsType<T>(), K, M, K));
+  checkCublasStatus(
+      cublasLtMatrixLayoutCreate(&Ddesc, getElementsType<T>(), N, M, N));
+  if (hasResidual) {
+    checkCublasStatus(
+        cublasLtMatrixLayoutCreate(&Cdesc, getElementsType<T>(), N, M, N));
+  }
+  if (matmulExMap.count(matmulExKey)) {
+    heuristicResult = matmulExMap[matmulExKey];
+  } else {
+    checkCublasStatus(cublasLtMatmulPreferenceCreate(&preference));
+    checkCublasStatus(cublasLtMatmulPreferenceSetAttribute(
+        preference, CUBLASLT_MATMUL_PREF_MAX_WORKSPACE_BYTES, &workspaceSize,
+        sizeof(workspaceSize)));
+    checkCublasStatus(cublasLtMatmulAlgoGetHeuristic(
+        ltHandle, operationDesc, Adesc, Bdesc, hasResidual ? Cdesc : Ddesc,
+        Ddesc, preference, 1, &heuristicResult, &returnedResults));
+
+    if (returnedResults == 0) {
+      checkCublasStatus(CUBLAS_STATUS_NOT_SUPPORTED);
+    }
+    matmulExMap.emplace(matmulExKey, heuristicResult);
+  }
+
+  T alpha = 1, beta = hasResidual ? 1 : 0;
+  checkCublasStatus(cublasLtMatmul(
+      ltHandle, operationDesc, &alpha, weight, Adesc, input, Bdesc, &beta,
+      hasResidual ? residual : output, hasResidual ? Cdesc : Ddesc, output,
+      Ddesc, &heuristicResult.algo, workspace, workspaceSize, stream));
+
+  if (preference)
+    checkCublasStatus(cublasLtMatmulPreferenceDestroy(preference));
+  if (Ddesc)
+    checkCublasStatus(cublasLtMatrixLayoutDestroy(Ddesc));
+  if (Cdesc)
+    checkCublasStatus(cublasLtMatrixLayoutDestroy(Cdesc));
+  if (Bdesc)
+    checkCublasStatus(cublasLtMatrixLayoutDestroy(Bdesc));
+  if (Adesc)
+    checkCublasStatus(cublasLtMatrixLayoutDestroy(Adesc));
+  if (operationDesc)
+    checkCublasStatus(cublasLtMatmulDescDestroy(operationDesc));
+}
+
+template MLIR_GPU_OPS_EXPORT void
+mgpuMatmulEx<half>(half *input, half *weight, half *bias, half *output,
+                   half *residual, int64_t M, int64_t N, int64_t K,
+                   bool hasBias, bool hasRelu, bool hasResidual,
+                   cudaStream_t stream);
+template MLIR_GPU_OPS_EXPORT void
+mgpuMatmulEx<float>(float *input, float *weight, float *bias, float *output,
+                    float *residual, int64_t M, int64_t N, int64_t K,
+                    bool hasBias, bool hasRelu, bool hasResidual,
+                    cudaStream_t stream);
 
 static std::unordered_map<int64_t, cudnnConvolutionFwdAlgo_t> conv2dMap;
 

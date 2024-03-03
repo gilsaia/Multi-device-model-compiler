@@ -1,3 +1,6 @@
+#ifndef MULTI_DEVICE_COMPILER_RUNTIME_CUDA_CUDARUNTIMEWARPPERS_H_
+#define MULTI_DEVICE_COMPILER_RUNTIME_CUDA_CUDARUNTIMEWARPPERS_H_
+
 #include "mlir/ExecutionEngine/CRunnerUtils.h"
 
 #include <stdio.h>
@@ -42,8 +45,12 @@ MLIR_CUDA_WRAPPERS_EXPORT float mgpuEventElapsedTime(CUevent begin,
                                                      CUevent end);
 void *mgpuMemAlloc(uint64_t sizeBytes, CUstream /*stream*/);
 void mgpuMemFree(void *ptr, CUstream /*stream*/);
+void *mgpuMemAllocAsync(uint64_t sizeBytes, CUstream stream);
+void mgpuMemFreeAsync(void *ptr, CUstream stream);
 void mgpuMemcpy(void *dst, void *src, size_t sizeBytes, CUstream stream);
 void mgpuMemset32(void *dst, unsigned int value, size_t count, CUstream stream);
 void mgpuMemset16(void *dst, unsigned short value, size_t count,
                   CUstream stream);
 }
+
+#endif
