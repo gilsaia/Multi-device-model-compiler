@@ -63,7 +63,8 @@ mgpuLayerNorm(const T *input, const T *gamma, const T *beta, T *output,
 template <typename T>
 MLIR_GPU_OPS_EXPORT void
 mgpuAddResidualPreLayerNorm(const T *input, const T *residual, const T *gamma,
-                            const T *beta, T *output, const float layernorm_eps,
-                            int m, int n, float *scale, cudaStream_t stream);
+                            const T *beta, T *output, T *normed_output,
+                            const float layernorm_eps, int m, int n,
+                            float *scale, cudaStream_t stream);
 
 #endif

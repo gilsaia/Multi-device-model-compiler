@@ -192,4 +192,18 @@ template <typename T> __device__ inline T cuda_max(T val1, T val2) {
   return (val1 > val2) ? val1 : val2;
 }
 
+template <typename T>
+void deviceFill(T *devptr, size_t size, T value, cudaStream_t stream) {
+  T *arr = new T[size];
+  std::fill(arr, arr + size, value);
+  checkCudaStatus(cudaMemcpyAsync(devptr, arr, sizeof(T) * size,
+                                  cudaMemcpyHostToDevice, stream));
+  delete[] arr;
+}
+
+template void deviceFill(float *devptr, size_t size, float value,
+                         cudaStream_t stream);
+template void deviceFill(half *devptr, size_t size, half value,
+                         cudaStream_t stream);
+
 #endif

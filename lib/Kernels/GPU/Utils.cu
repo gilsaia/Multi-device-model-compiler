@@ -22,11 +22,13 @@ __global__ void cudaCast(T_OUT *dst, T_IN const *const src, const size_t size) {
     cudaReadBytes<VPT * sizeof(T_IN)>(
         reinterpret_cast<void *>(srcTmps + threadIdx.x * VPT),
         reinterpret_cast<void const *>(src + tid));
+    __syncwarp();
+    int sharedid = threadIdx.x / 32 * (32 * VPT) + threadIdx.x % 32;
 #pragma unroll
     for (int i = 0; i < VPT; ++i) {
-      dstTmps[threadIdx.x + i * blockDim.x] =
-          (T_OUT)(srcTmps[threadIdx.x + i * blockDim.x]);
+      dstTmps[sharedid + i * 32] = (T_OUT)(srcTmps[sharedid + i * 32]);
     }
+    __syncwarp();
     cudaReadBytes<VPT * sizeof(T_OUT)>(
         reinterpret_cast<void *>(dst + tid),
         reinterpret_cast<void const *>(dstTmps + threadIdx.x * VPT));
@@ -43,11 +45,14 @@ __global__ void cudaCastFloat2Half(half *dst, float const *const src,
     cudaReadBytes<VPT * sizeof(float)>(
         reinterpret_cast<void *>(srcTmps + threadIdx.x * VPT / 2),
         reinterpret_cast<void const *>(src + tid));
+    __syncwarp();
+    int sharedid = threadIdx.x / 32 * (32 * VPT / 2) + threadIdx.x % 32;
 #pragma unroll
     for (int i = 0; i < VPT / 2; ++i) {
-      dstTmps[threadIdx.x + i * blockDim.x] =
-          __float22half2_rn(srcTmps[threadIdx.x + i * blockDim.x]);
+      dstTmps[sharedid + i * 32] =
+          __float22half2_rn(srcTmps[sharedid + i * 32]);
     }
+    __syncwarp();
     cudaReadBytes<VPT * sizeof(half)>(
         reinterpret_cast<void *>(dst + tid),
         reinterpret_cast<void const *>(dstTmps + threadIdx.x * VPT / 2));
@@ -64,11 +69,13 @@ __global__ void cudaCastHalf2Float(float *dst, half const *const src,
     cudaReadBytes<VPT * sizeof(half)>(
         reinterpret_cast<void *>(srcTmps + threadIdx.x * VPT / 2),
         reinterpret_cast<void const *>(src + tid));
+    __syncwarp();
+    int sharedid = threadIdx.x / 32 * (32 * VPT / 2) + threadIdx.x % 32;
 #pragma unroll
     for (int i = 0; i < VPT / 2; ++i) {
-      dstTmps[threadIdx.x + i * blockDim.x] =
-          __half22float2(srcTmps[threadIdx.x + i * blockDim.x]);
+      dstTmps[sharedid + i * 32] = __half22float2(srcTmps[sharedid + i * 32]);
     }
+    __syncwarp();
     cudaReadBytes<VPT * sizeof(float)>(
         reinterpret_cast<void *>(dst + tid),
         reinterpret_cast<void const *>(dstTmps + threadIdx.x * VPT / 2));

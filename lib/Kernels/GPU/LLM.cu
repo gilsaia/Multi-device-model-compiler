@@ -1,6 +1,9 @@
+#include "multi-device-model-compiler/Kernels/GPU/CudaTypeUtils.cuh"
 #include "multi-device-model-compiler/Kernels/GPU/Ops.h"
 #include "multi-device-model-compiler/Kernels/GPU/Utils.h"
 #include "multi-device-model-compiler/Runtime/CUDA/CudaRuntimeWrappers.h"
+
+#include "cuda_fp16.h"
 
 cudaStream_t LLMCopyStream;
 cudaEvent_t LLMCopyEvent;
@@ -29,11 +32,20 @@ extern "C" MLIR_GPU_OPS_EXPORT void mgpuLLMDecodingContextLayer(
   // alloc layernorm output
   half *input_layernorm_h = reinterpret_cast<half *>(mgpuMemAllocAsync(
       batch * seq_len * d_model * sizeof(half), LLMCopyStream));
+  half *layernorm_gamma = reinterpret_cast<half *>(
+      mgpuMemAllocAsync(d_model * sizeof(half), LLMCopyStream));
+  half *layernorm_beta = reinterpret_cast<half *>(
+      mgpuMemAllocAsync(d_model * sizeof(half), LLMCopyStream));
+  cudaMemsetAsync(layernorm_beta, 0, d_model * sizeof(half), LLMCopyStream);
+  deviceFill(layernorm_gamma, d_model, __ushort_as_half(0x3C00U),
+             LLMCopyStream);
   cudaEventRecord(LLMCopyEvent, LLMCopyStream);
 
   // perform layernorm&transpose on input
   cudaStreamWaitEvent(stream, LLMCopyEvent);
-  // TODO: add layernorm&transpose call
+  mgpuLayerNorm(input_h, layernorm_gamma, layernorm_beta, input_layernorm_h,
+                1e-5, batch * seq_len, d_model, nullptr, stream);
+  // TODO: add transpose call
 
   // transform QKV to half
   half *qkv_h = reinterpret_cast<half *>(
@@ -58,6 +70,22 @@ extern "C" MLIR_GPU_OPS_EXPORT void mgpuLLMDecodingContextLayer(
   // perform self-attn call
   // TODO: add self-attn call,output to input_layernorm_h
 
+  // alloc proj gemm weight bias
+  half *proj_gemm_weight_h = reinterpret_cast<half *>(
+      mgpuMemAllocAsync(d_model * d_model * sizeof(half), LLMCopyStream));
+  invokeCudaCast(proj_gemm_weight_h, gemm_weight, d_model * d_model,
+                 LLMCopyStream);
+  half *proj_gemm_bias_h = reinterpret_cast<half *>(
+      mgpuMemAllocAsync(d_model * sizeof(half), LLMCopyStream));
+  invokeCudaCast(proj_gemm_bias_h, gemm_bias, d_model, LLMCopyStream);
+  cudaEventRecord(LLMCopyEvent, LLMCopyStream);
+
+  // perform proj gemm
+  cudaStreamWaitEvent(stream, LLMCopyEvent);
+  mgpuMatmulEx<half>(input_layernorm_h, proj_gemm_weight_h, proj_gemm_bias_h,
+                     input_qkv_h, nullptr, batch * seq_len, d_model, d_model,
+                     true, false, false, stream);
+
   // alloc ffn1 weight bias output
   half *ffn1_weight_h = reinterpret_cast<half *>(mgpuMemAllocAsync(
       d_model * feed_forward_dim * sizeof(half), LLMCopyStream));
@@ -71,17 +99,19 @@ extern "C" MLIR_GPU_OPS_EXPORT void mgpuLLMDecodingContextLayer(
   cudaEventRecord(LLMCopyEvent, LLMCopyStream);
 
   // perform transpose call
-  // TODO: add transpose call,output to input_qkv_h
+  // TODO: add transpose call,output to input_layernorm_h
 
   // perform add&layernorm call
-  // TODO: add add&layernorm call,output to input_layernorm_h
+  mgpuAddResidualPreLayerNorm(input_layernorm_h, input_h, layernorm_gamma,
+                              layernorm_beta, input_k_h, input_qkv_h, 1e-5,
+                              batch * seq_len, d_model, nullptr, stream);
 
   // perform ffn1
   // wait ffn1 transform
   cudaStreamWaitEvent(stream, LLMCopyEvent);
-  mgpuMatmulEx<half>(input_layernorm_h, ffn1_weight_h, ffn1_bias_h,
-                     ffn1_output_h, nullptr, batch * seq_len, feed_forward_dim,
-                     d_model, true, true, false, stream);
+  mgpuMatmulEx<half>(input_qkv_h, ffn1_weight_h, ffn1_bias_h, ffn1_output_h,
+                     nullptr, batch * seq_len, feed_forward_dim, d_model, true,
+                     true, false, stream);
 
   // alloc ffn2 weight bias output
   half *ffn2_weight_h = reinterpret_cast<half *>(mgpuMemAllocAsync(
@@ -97,8 +127,8 @@ extern "C" MLIR_GPU_OPS_EXPORT void mgpuLLMDecodingContextLayer(
   // wait ffn2 transform
   cudaStreamWaitEvent(stream, LLMCopyEvent);
   mgpuMatmulEx<half>(ffn1_output_h, ffn2_weight_h, ffn2_bias_h, input_h,
-                     input_h, batch * seq_len, d_model, feed_forward_dim, true,
-                     false, true, stream);
+                     input_k_h, batch * seq_len, d_model, feed_forward_dim,
+                     true, false, true, stream);
 
   // transform input to output
   invokeCudaCast(output, input_h, batch * seq_len * d_model, LLMCopyStream);
@@ -107,6 +137,8 @@ extern "C" MLIR_GPU_OPS_EXPORT void mgpuLLMDecodingContextLayer(
   mgpuMemFreeAsync(input_layernorm_h, LLMCopyStream);
   mgpuMemFreeAsync(qkv_h, LLMCopyStream);
   mgpuMemFreeAsync(input_qkv_h, LLMCopyStream);
+  mgpuMemFreeAsync(proj_gemm_weight_h, LLMCopyStream);
+  mgpuMemFreeAsync(proj_gemm_bias_h, LLMCopyStream);
   mgpuMemFreeAsync(ffn1_weight_h, LLMCopyStream);
   mgpuMemFreeAsync(ffn1_bias_h, LLMCopyStream);
   mgpuMemFreeAsync(ffn1_output_h, LLMCopyStream);

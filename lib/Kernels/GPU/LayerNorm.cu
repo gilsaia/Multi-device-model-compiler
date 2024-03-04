@@ -438,8 +438,9 @@ mgpuLayerNorm<half>(const half *input, const half *gamma, const half *beta,
 template <typename T>
 MLIR_GPU_OPS_EXPORT void
 mgpuAddResidualPreLayerNorm(const T *input, const T *residual, const T *gamma,
-                            const T *beta, T *output, const float layernorm_eps,
-                            int m, int n, float *scale, cudaStream_t stream) {
+                            const T *beta, T *output, T *normed_output,
+                            const float layernorm_eps, int m, int n,
+                            float *scale, cudaStream_t stream) {
   // only consider half
   int half_n = n / 2;
   int half_n_32 = (half_n + 31) / 32 * 32;
@@ -452,7 +453,7 @@ mgpuAddResidualPreLayerNorm(const T *input, const T *residual, const T *gamma,
   }
 
   dispatch_generalAddBiasResidualLayerNormOpt_unroll_factor<half2>(
-      (half2 *)output, (half2 *)output, (const half2 *)output, nullptr,
+      (half2 *)normed_output, (half2 *)output, (const half2 *)output, nullptr,
       (const half2 *)input, (const half2 *)residual, (const half2 *)gamma,
       (const half2 *)beta, layernorm_eps, m, half_n, nullptr, nullptr, scale,
       nullptr, 0, grid, block, stream, 2, false, 2, unroll_factor);
@@ -460,5 +461,6 @@ mgpuAddResidualPreLayerNorm(const T *input, const T *residual, const T *gamma,
 
 template MLIR_GPU_OPS_EXPORT void mgpuAddResidualPreLayerNorm<half>(
     const half *input, const half *residual, const half *gamma,
-    const half *beta, half *output, const float layernorm_eps, const int m,
-    const int n, float *scale, cudaStream_t stream);
+    const half *beta, half *output, half *normed_output,
+    const float layernorm_eps, const int m, const int n, float *scale,
+    cudaStream_t stream);
