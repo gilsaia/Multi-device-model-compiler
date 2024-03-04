@@ -98,20 +98,17 @@ extern "C" MLIR_GPU_OPS_EXPORT void mgpuLLMDecodingContextLayer(
       batch * seq_len * feed_forward_dim * sizeof(half), LLMCopyStream));
   cudaEventRecord(LLMCopyEvent, LLMCopyStream);
 
-  // perform transpose call
-  // TODO: add transpose call,output to input_layernorm_h
-
   // perform add&layernorm call
-  mgpuAddResidualPreLayerNorm(input_layernorm_h, input_h, layernorm_gamma,
-                              layernorm_beta, input_k_h, input_qkv_h, 1e-5,
-                              batch * seq_len, d_model, nullptr, stream);
+  mgpuAddResidualPreLayerNorm(input_qkv_h, input_h, layernorm_gamma,
+                              layernorm_beta, input_k_h, input_layernorm_h,
+                              1e-5, batch * seq_len, d_model, nullptr, stream);
 
   // perform ffn1
   // wait ffn1 transform
   cudaStreamWaitEvent(stream, LLMCopyEvent);
-  mgpuMatmulEx<half>(input_qkv_h, ffn1_weight_h, ffn1_bias_h, ffn1_output_h,
-                     nullptr, batch * seq_len, feed_forward_dim, d_model, true,
-                     true, false, stream);
+  mgpuMatmulEx<half>(input_layernorm_h, ffn1_weight_h, ffn1_bias_h,
+                     ffn1_output_h, nullptr, batch * seq_len, feed_forward_dim,
+                     d_model, true, true, false, stream);
 
   // alloc ffn2 weight bias output
   half *ffn2_weight_h = reinterpret_cast<half *>(mgpuMemAllocAsync(
