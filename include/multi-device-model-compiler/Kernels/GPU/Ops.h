@@ -67,4 +67,10 @@ mgpuAddResidualPreLayerNorm(const T *input, const T *residual, const T *gamma,
                             const float layernorm_eps, int m, int n,
                             float *scale, cudaStream_t stream);
 
+template <typename T>
+MLIR_GPU_OPS_EXPORT void mgpuAddFusedQKVBiasTranspose(
+    T *q_buf, T *k_buf, T *v_buf, T *QKV, const T *qkv_bias,
+    const int batch_size, const int seq_len, const int token_num,
+    const int head_num, const int size_per_head, cudaStream_t stream);
+
 #endif

@@ -91,6 +91,12 @@ if(USE_CUDA_SUPPORT)
 endif()
 #---------------------------------------------------------------
 
+# CUDA 3rdparty Kernels Configure
+if(USE_CUDA_SUPPORT)
+    add_subdirectory(3rdparty/trt_fused_multihead_attention)
+endif()
+#---------------------------------------------------------------
+
 include_directories(${CMAKE_SOURCE_DIR}/include)
 include_directories(${CMAKE_BINARY_DIR}/include)
 

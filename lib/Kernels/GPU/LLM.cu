@@ -2,15 +2,21 @@
 #include "multi-device-model-compiler/Kernels/GPU/Ops.h"
 #include "multi-device-model-compiler/Kernels/GPU/Utils.h"
 #include "multi-device-model-compiler/Runtime/CUDA/CudaRuntimeWrappers.h"
+#include "qkvToContext.h"
 
 #include "cuda_fp16.h"
 
 cudaStream_t LLMCopyStream;
 cudaEvent_t LLMCopyEvent;
+int sm;
+std::unique_ptr<fastertransformer::MHARunner> dispatcher_fp16;
 
 void gpuLLMOpsInit() {
   cudaStreamCreate(&LLMCopyStream);
   cudaEventCreate(&LLMCopyEvent);
+  sm = getSMVersion();
+  dispatcher_fp16.reset(
+      new fastertransformer::FusedMHARunnerFP16v2(16, 128, sm, 1.0f));
 }
 void gpuLLMOpsDeinit() {
   cudaStreamDestroy(LLMCopyStream);
@@ -37,15 +43,13 @@ extern "C" MLIR_GPU_OPS_EXPORT void mgpuLLMDecodingContextLayer(
   half *layernorm_beta = reinterpret_cast<half *>(
       mgpuMemAllocAsync(d_model * sizeof(half), LLMCopyStream));
   cudaMemsetAsync(layernorm_beta, 0, d_model * sizeof(half), LLMCopyStream);
-  deviceFill(layernorm_gamma, d_model, __ushort_as_half(0x3C00U),
-             LLMCopyStream);
+  deviceFill(layernorm_gamma, d_model, __float2half(1), LLMCopyStream);
   cudaEventRecord(LLMCopyEvent, LLMCopyStream);
 
   // perform layernorm&transpose on input
   cudaStreamWaitEvent(stream, LLMCopyEvent);
   mgpuLayerNorm(input_h, layernorm_gamma, layernorm_beta, input_layernorm_h,
                 1e-5, batch * seq_len, d_model, nullptr, stream);
-  // TODO: add transpose call
 
   // transform QKV to half
   half *qkv_h = reinterpret_cast<half *>(
@@ -67,7 +71,18 @@ extern "C" MLIR_GPU_OPS_EXPORT void mgpuLLMDecodingContextLayer(
        *input_k_h = input_qkv_h + seq_len * batch * d_model,
        *input_v_h = input_qkv_h + (seq_len * batch * d_model * 2);
 
+  //   // perform transpose
+  //   mgpuAddFusedQKVBiasTranspose<half>(input_q_h, input_k_h, input_v_h,
+  //                                      input_qkv_h, nullptr, batch, seq_len,
+  //                                      batch * seq_len, head_num, d_head,
+  //                                      stream);
+
   // perform self-attn call
+  int dis_seq_len = seq_len;
+  dispatcher_fp16->setup_causal_masked_fmha(seq_len, batch);
+  dispatcher_fp16->run_causal_masked_fmha(input_qkv_h, &dis_seq_len,
+                                          input_layernorm_h, true, stream);
+
   // TODO: add self-attn call,output to input_layernorm_h
 
   // alloc proj gemm weight bias
