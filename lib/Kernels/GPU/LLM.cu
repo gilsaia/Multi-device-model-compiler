@@ -16,7 +16,7 @@ void gpuLLMOpsInit() {
   cudaEventCreate(&LLMCopyEvent);
   sm = getSMVersion();
   dispatcher_fp16.reset(
-      new fastertransformer::FusedMHARunnerFP16v2(16, 128, sm, 1.0f));
+      new fastertransformer::FusedMHARunnerFP16v2(8, 128, sm, 1.0f));
 }
 void gpuLLMOpsDeinit() {
   cudaStreamDestroy(LLMCopyStream);
@@ -58,6 +58,10 @@ extern "C" MLIR_GPU_OPS_EXPORT void mgpuLLMDecodingContextLayer(
   // alloc qkv gemm output
   half *input_qkv_h = reinterpret_cast<half *>(mgpuMemAllocAsync(
       batch * seq_len * d_model * 3 * sizeof(half), LLMCopyStream));
+
+  int *cu_seqlens = reinterpret_cast<int *>(
+      mgpuMemAllocAsync(batch * sizeof(int), LLMCopyStream));
+  deviceFill<int>(cu_seqlens, batch, seq_len, LLMCopyStream);
   cudaEventRecord(LLMCopyEvent, LLMCopyStream);
 
   // perform qkv gemm
@@ -71,19 +75,10 @@ extern "C" MLIR_GPU_OPS_EXPORT void mgpuLLMDecodingContextLayer(
        *input_k_h = input_qkv_h + seq_len * batch * d_model,
        *input_v_h = input_qkv_h + (seq_len * batch * d_model * 2);
 
-  //   // perform transpose
-  //   mgpuAddFusedQKVBiasTranspose<half>(input_q_h, input_k_h, input_v_h,
-  //                                      input_qkv_h, nullptr, batch, seq_len,
-  //                                      batch * seq_len, head_num, d_head,
-  //                                      stream);
-
   // perform self-attn call
-  int dis_seq_len = seq_len;
   dispatcher_fp16->setup_causal_masked_fmha(seq_len, batch);
-  dispatcher_fp16->run_causal_masked_fmha(input_qkv_h, &dis_seq_len,
+  dispatcher_fp16->run_causal_masked_fmha(input_qkv_h, cu_seqlens,
                                           input_layernorm_h, true, stream);
-
-  // TODO: add self-attn call,output to input_layernorm_h
 
   // alloc proj gemm weight bias
   half *proj_gemm_weight_h = reinterpret_cast<half *>(
@@ -156,6 +151,7 @@ extern "C" MLIR_GPU_OPS_EXPORT void mgpuLLMDecodingContextLayer(
   mgpuMemFreeAsync(ffn1_output_h, LLMCopyStream);
   mgpuMemFreeAsync(ffn2_weight_h, LLMCopyStream);
   mgpuMemFreeAsync(ffn2_bias_h, LLMCopyStream);
+  mgpuMemFreeAsync(cu_seqlens, LLMCopyStream);
   cudaEventRecord(LLMCopyEvent, LLMCopyStream);
 
   // add dependency
