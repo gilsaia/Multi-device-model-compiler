@@ -18,7 +18,7 @@ static cudnnHandle_t cudnnHandle;
 static void *workspace;
 static size_t workspaceSize = 1024 * 1024 * 16;
 
-inline void checkCudaStatus(cudaError_t status) {
+void checkCudaStatus(cudaError_t status) {
   if (status != cudaSuccess) {
     printf("cuda API failed with status %d: %s\n", status,
            cudaGetErrorString(status));
