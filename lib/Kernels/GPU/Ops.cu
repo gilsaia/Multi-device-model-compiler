@@ -72,7 +72,7 @@ extern "C" MLIR_GPU_OPS_EXPORT void mgpuMatmul(float *input, float *weight,
 
   auto epilogue = CUBLASLT_EPILOGUE_BIAS;
   checkCublasStatus(cublasLtMatmulDescCreate(
-      &operationDesc, CUBLAS_COMPUTE_32F_FAST_TF32, CUDA_R_32F));
+      &operationDesc, CUBLAS_COMPUTE_32F_FAST_16F, CUDA_R_32F));
   checkCublasStatus(cublasLtMatmulDescSetAttribute(
       operationDesc, CUBLASLT_MATMUL_DESC_EPILOGUE, &epilogue,
       sizeof(epilogue)));
@@ -160,7 +160,7 @@ MLIR_GPU_OPS_EXPORT void mgpuMatmulEx(T *input, T *weight, T *bias, T *output,
 
   if (std::is_same<T, float>()) {
     checkCublasStatus(cublasLtMatmulDescCreate(
-        &operationDesc, CUBLAS_COMPUTE_32F_FAST_TF32, CUDA_R_32F));
+        &operationDesc, CUBLAS_COMPUTE_32F_FAST_16F, CUDA_R_32F));
   } else if (std::is_same<T, half>()) {
     checkCublasStatus(cublasLtMatmulDescCreate(&operationDesc,
                                                CUBLAS_COMPUTE_16F, CUDA_R_16F));

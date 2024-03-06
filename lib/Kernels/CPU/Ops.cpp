@@ -22,7 +22,12 @@ void cpuOpsInit(bool fastMathFlag) {
   cpuEngine = engine(engine::kind::cpu, 0);
   cpuStream = stream(cpuEngine);
   fastFlag = fastMathFlag;
+  cpuLLMOpsInit();
 }
+
+engine &getOpsEngine() { return cpuEngine; }
+stream &getOpsStream() { return cpuStream; }
+bool getOpsFastFlag() { return fastFlag; }
 
 static std::unordered_map<int64_t, matmul> matmulMap;
 

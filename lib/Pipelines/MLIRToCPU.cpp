@@ -30,6 +30,9 @@
 #include "mlir/Transforms/Passes.h"
 
 void multi_device::pipelines::createMLIRToCPUPipeline(mlir::OpPassManager &pm) {
+  pm.addPass(multi_device::createONNXLowerToDevice());
+  pm.addPass(mlir::createCanonicalizerPass());
+  pm.addPass(mlir::createCSEPass());
   pm.addPass(multi_device::createFrontendToTosaLoweringFix());
   device::AddDeviceTypeToFuncOptions deviceOptions;
   deviceOptions.deviceType = device::DeviceType::CPU;

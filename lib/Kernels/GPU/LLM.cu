@@ -46,7 +46,7 @@ extern "C" MLIR_GPU_OPS_EXPORT void mgpuLLMDecodingContextLayer(
   deviceFill(layernorm_gamma, d_model, __float2half(1), LLMCopyStream);
   cudaEventRecord(LLMCopyEvent, LLMCopyStream);
 
-  // perform layernorm&transpose on input
+  // perform layernorm on input
   cudaStreamWaitEvent(stream, LLMCopyEvent);
   mgpuLayerNorm(input_h, layernorm_gamma, layernorm_beta, input_layernorm_h,
                 1e-5, batch * seq_len, d_model, nullptr, stream);
