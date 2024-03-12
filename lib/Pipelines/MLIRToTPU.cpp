@@ -1,4 +1,5 @@
 #include "multi-device-model-compiler/Conversion/ConvertDeviceToTPU/ConvertDeviceToTPU.h"
+#include "multi-device-model-compiler/Conversion/ConvertONNXToTosa/ConvertONNXToTosa.h"
 #include "multi-device-model-compiler/Conversion/ConvertTosaToDevice/ConvertTosaToDevice.h"
 #include "multi-device-model-compiler/Conversion/ConvertTosaToTPU/ConvertTosaToTPU.h"
 #include "multi-device-model-compiler/Dialect/Device/IR/Device.h"
@@ -12,6 +13,7 @@
 #include "mlir/Transforms/Passes.h"
 
 void multi_device::pipelines::createMLIRToTPUPipeline(mlir::OpPassManager &pm) {
+  pm.addPass(multi_device::createFrontendToTosaLoweringFix());
   device::AddDeviceTypeToFuncOptions deviceOptions;
   deviceOptions.deviceType = device::DeviceType::TPU;
   pm.addPass(

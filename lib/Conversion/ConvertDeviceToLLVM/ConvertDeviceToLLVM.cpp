@@ -227,6 +227,35 @@ public:
           llvmInt64Type /* SH */, llvmInt64Type /* SW */,
           llvmInt64Type /* method */, llvmPointerType /* stream */
       }};
+  FunctionCallBuilder cpuMultiHeadAttentionLayerBuild = {
+      "mcpuLLMDecodingContextLayer",
+      llvmVoidType,
+      {
+          llvmPointerType /*input*/, llvmPointerType /*qkv*/,
+          llvmPointerType /*attn gemm weight*/,
+          llvmPointerType /*attn gemm bias*/, llvmPointerType /*ffn1 weight*/,
+          llvmPointerType /*ffn1 bias*/, llvmPointerType /*ffn2 weight*/,
+          llvmPointerType /*ffn2 bias*/, llvmPointerType /*output*/,
+          llvmInt64Type /*batch*/, llvmInt64Type /*seq_len*/,
+          llvmInt64Type /*d_model*/, llvmInt64Type /*feed_forward_dim*/,
+          llvmInt64Type /*head_num*/, llvmBoolType /*norm first*/,
+          llvmBoolType /*is_casual*/, llvmBoolType /*is_relu*/
+      }};
+  FunctionCallBuilder gpuMultiHeadAttentionLayerBuild = {
+      "mgpuLLMDecodingContextLayer",
+      llvmVoidType,
+      {
+          llvmPointerType /*input*/, llvmPointerType /*qkv*/,
+          llvmPointerType /*attn gemm weight*/,
+          llvmPointerType /*attn gemm bias*/, llvmPointerType /*ffn1 weight*/,
+          llvmPointerType /*ffn1 bias*/, llvmPointerType /*ffn2 weight*/,
+          llvmPointerType /*ffn2 bias*/, llvmPointerType /*output*/,
+          llvmInt64Type /*batch*/, llvmInt64Type /*seq_len*/,
+          llvmInt64Type /*d_model*/, llvmInt64Type /*feed_forward_dim*/,
+          llvmInt64Type /*head_num*/, llvmBoolType /*norm first*/,
+          llvmBoolType /*is_casual*/, llvmBoolType /*is_relu*/,
+          llvmPointerType /* stream */
+      }};
 
 protected:
   SymbolTable *cachedModuleTable;
@@ -657,6 +686,98 @@ LogicalResult ConvertPool2dOpToDeviceRuntimeCallPattern::matchAndRewrite(
   return success();
 }
 
+class ConvertMultiHeadAttentionLayerToDeviceRuntimeCallPattern
+    : public ConvertDeviceOpToDeviceRuntimeCallPattern<
+          multi_device::device::MultiHeadAttentionLayer> {
+public:
+  using ConvertDeviceOpToDeviceRuntimeCallPattern<
+      multi_device::device::MultiHeadAttentionLayer>::
+      ConvertDeviceOpToDeviceRuntimeCallPattern;
+  LogicalResult matchAndRewrite(
+      multi_device::device::MultiHeadAttentionLayer multiHeadAttentionLayer,
+      OpAdaptor adaptor, ConversionPatternRewriter &rewriter) const override;
+};
+
+LogicalResult
+ConvertMultiHeadAttentionLayerToDeviceRuntimeCallPattern::matchAndRewrite(
+    multi_device::device::MultiHeadAttentionLayer multiHeadAttentionLayer,
+    OpAdaptor adaptor, ConversionPatternRewriter &rewriter) const {
+  auto batch = multiHeadAttentionLayer.getBatch(),
+       seq_len = multiHeadAttentionLayer.getSeqLen(),
+       d_model = multiHeadAttentionLayer.getDModel(),
+       feed_forward_dim = multiHeadAttentionLayer.getFeedForwardDim(),
+       head_num = multiHeadAttentionLayer.getHeadNum();
+
+  bool norm_first = multiHeadAttentionLayer.getNormFirst(),
+       is_casual = multiHeadAttentionLayer.getIsCasual(),
+       is_relu = multiHeadAttentionLayer.getAct() == "relu";
+
+  auto loc = multiHeadAttentionLayer.getLoc();
+  Value batch_val =
+            rewriter.create<LLVM::ConstantOp>(loc, llvmInt64Type, batch),
+        seq_len_val =
+            rewriter.create<LLVM::ConstantOp>(loc, llvmInt64Type, seq_len),
+        d_model_val =
+            rewriter.create<LLVM::ConstantOp>(loc, llvmInt64Type, d_model),
+        feed_forward_dim_val = rewriter.create<LLVM::ConstantOp>(
+            loc, llvmInt64Type, feed_forward_dim),
+        head_num_val =
+            rewriter.create<LLVM::ConstantOp>(loc, llvmInt64Type, head_num),
+        norm_first_val =
+            rewriter.create<LLVM::ConstantOp>(loc, llvmBoolType, norm_first),
+        is_casual_val =
+            rewriter.create<LLVM::ConstantOp>(loc, llvmBoolType, is_casual),
+        is_relu_val =
+            rewriter.create<LLVM::ConstantOp>(loc, llvmBoolType, is_relu);
+
+  SmallVector<Value> opOperandsVec{multiHeadAttentionLayer.getInput(),
+                                   multiHeadAttentionLayer.getQKV(),
+                                   multiHeadAttentionLayer.getAttnGemmWeight(),
+                                   multiHeadAttentionLayer.getAttnGemmBias(),
+                                   multiHeadAttentionLayer.getFfn1Weight(),
+                                   multiHeadAttentionLayer.getFfn1Bias(),
+                                   multiHeadAttentionLayer.getFfn2Weight(),
+                                   multiHeadAttentionLayer.getFfn2Bias(),
+                                   multiHeadAttentionLayer.getOutput()},
+      operandsVec{adaptor.getInput(),          adaptor.getQKV(),
+                  adaptor.getAttnGemmWeight(), adaptor.getAttnGemmBias(),
+                  adaptor.getFfn1Weight(),     adaptor.getFfn1Bias(),
+                  adaptor.getFfn2Weight(),     adaptor.getFfn2Bias(),
+                  adaptor.getOutput()};
+
+  SmallVector<Value> arguments = getTypeConverter()->promoteOperands(
+      loc, opOperandsVec, operandsVec, rewriter, true);
+
+  if (device == multi_device::device::DeviceType::GPU) {
+    gpuMultiHeadAttentionLayerBuild.create(
+        loc, rewriter,
+        {arguments[0], arguments[1], arguments[2], arguments[3], arguments[4],
+         arguments[5], arguments[6], arguments[7], arguments[8], batch_val,
+         seq_len_val, d_model_val, feed_forward_dim_val, head_num_val,
+         norm_first_val, is_casual_val, is_relu_val,
+         adaptor.getAsyncDependencies()[0]});
+  } else if (device == multi_device::device::DeviceType::CPU) {
+    cpuMultiHeadAttentionLayerBuild.create(
+        loc, rewriter,
+        {arguments[0], arguments[1], arguments[2], arguments[3], arguments[4],
+         arguments[5], arguments[6], arguments[7], arguments[8], batch_val,
+         seq_len_val, d_model_val, feed_forward_dim_val, head_num_val,
+         norm_first_val, is_casual_val, is_relu_val});
+  } else {
+    return rewriter.notifyMatchFailure(multiHeadAttentionLayer, "wrong device");
+  }
+
+  // async control
+  if (multiHeadAttentionLayer.getAsyncToken()) {
+    rewriter.replaceOp(multiHeadAttentionLayer,
+                       {multiHeadAttentionLayer.getAsyncDependencies()[0]});
+  } else {
+    rewriter.eraseOp(multiHeadAttentionLayer);
+  }
+
+  return success();
+}
+
 void multi_device::conversion::populateDeviceToLLVMConversionPatterns(
     mlir::LLVMTypeConverter &converter, mlir::RewritePatternSet &patterns,
     mlir::SymbolTable *cachedModuleTable, device::DeviceType device) {
@@ -666,6 +787,7 @@ void multi_device::conversion::populateDeviceToLLVMConversionPatterns(
                                                           cachedModuleTable);
   patterns.add<ConvertMatmulOpToDeviceRuntimeCallPattern,
                ConvertConv2dOpToDeviceRuntimeCallPattern,
-               ConvertPool2dOpToDeviceRuntimeCallPattern>(
+               ConvertPool2dOpToDeviceRuntimeCallPattern,
+               ConvertMultiHeadAttentionLayerToDeviceRuntimeCallPattern>(
       converter, cachedModuleTable, device);
 }

@@ -58,6 +58,7 @@ include_directories(3rdparty/flatbuffers/include)
 set(DNNL_CPU_RUNTIME OMP)
 set(DNNL_BUILD_EXAMPLES OFF)
 set(DNNL_BUILD_TESTS OFF)
+set(ONEDNN_EXPERIMENTAL_GRAPH_COMPILER_BACKEND ON)
 add_subdirectory(3rdparty/oneDNN)
 include_directories(3rdparty/oneDNN/include)
 include_directories(${CMAKE_BINARY_DIR}/3rdparty/oneDNN/include)
@@ -88,6 +89,12 @@ if(USE_CUDA_SUPPORT)
     enable_language(CUDA)
     find_package(CUDAToolkit REQUIRED)
     add_compile_definitions(MULTI_DEVICE_CUDA_ENABLE)
+endif()
+#---------------------------------------------------------------
+
+# CUDA 3rdparty Kernels Configure
+if(USE_CUDA_SUPPORT)
+    add_subdirectory(3rdparty/trt_fused_multihead_attention)
 endif()
 #---------------------------------------------------------------
 

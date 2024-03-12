@@ -1,3 +1,4 @@
+#include "multi-device-model-compiler/Conversion/ConvertONNXToTosa/ConvertONNXToTosa.h"
 #include "multi-device-model-compiler/Conversion/Passes.h"
 #include "multi-device-model-compiler/Dialect/Device/Transform/Passes.h"
 #include "multi-device-model-compiler/Dialect/ONNX/Transform/Passes.h"
@@ -29,6 +30,10 @@
 #include "mlir/Transforms/Passes.h"
 
 void multi_device::pipelines::createMLIRToCPUPipeline(mlir::OpPassManager &pm) {
+  pm.addPass(multi_device::createONNXLowerToDevice());
+  pm.addPass(mlir::createCanonicalizerPass());
+  pm.addPass(mlir::createCSEPass());
+  pm.addPass(multi_device::createFrontendToTosaLoweringFix());
   device::AddDeviceTypeToFuncOptions deviceOptions;
   deviceOptions.deviceType = device::DeviceType::CPU;
   pm.addPass(

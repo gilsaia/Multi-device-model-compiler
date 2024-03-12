@@ -212,6 +212,17 @@ extern "C" void mgpuMemFree(void *ptr, CUstream /*stream*/) {
   CUDA_REPORT_IF_ERROR(cuMemFree(reinterpret_cast<CUdeviceptr>(ptr)));
 }
 
+extern "C" void *mgpuMemAllocAsync(uint64_t sizeBytes, CUstream stream) {
+  CUdeviceptr ptr;
+  CUDA_REPORT_IF_ERROR(cuMemAllocAsync(&ptr, sizeBytes, stream));
+  return reinterpret_cast<void *>(ptr);
+}
+
+extern "C" void mgpuMemFreeAsync(void *ptr, CUstream stream) {
+  CUDA_REPORT_IF_ERROR(
+      cuMemFreeAsync(reinterpret_cast<CUdeviceptr>(ptr), stream));
+}
+
 extern "C" void mgpuMemcpy(void *dst, void *src, size_t sizeBytes,
                            CUstream stream) {
   CUDA_REPORT_IF_ERROR(cuMemcpyAsync(reinterpret_cast<CUdeviceptr>(dst),

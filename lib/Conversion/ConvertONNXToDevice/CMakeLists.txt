@@ -1,0 +1,7 @@
+add_library(ConvertONNXToDevice STATIC 
+ConvertONNXToDevice.cpp
+MultiHeadAttentionLayer.cpp)
+add_dependencies(ConvertONNXToDevice MultiDeviceConversionPassIncGen)
+target_link_libraries(ConvertONNXToDevice PUBLIC
+OMONNXOps MultiDeviceDeviceDialect
+MLIRIR MLIRTransforms)

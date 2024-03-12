@@ -191,6 +191,27 @@ void Pool2DOp::addAsyncDependency(Value token) {
   getAsyncDependenciesMutable().append(token);
 }
 
+//===----------------------------------------------------------------------===//
+// Device_MultiHeadAttentionLayer
+//===----------------------------------------------------------------------===//
+void MultiHeadAttentionLayer::getEffects(
+    llvm::SmallVectorImpl<SideEffects::EffectInstance<MemoryEffects::Effect>>
+        &effects) {
+
+  effects.emplace_back(MemoryEffects::Read::get(), getInput());
+  effects.emplace_back(MemoryEffects::Read::get(), getQKV());
+  effects.emplace_back(MemoryEffects::Read::get(), getAttnGemmWeight());
+  effects.emplace_back(MemoryEffects::Read::get(), getAttnGemmBias());
+  effects.emplace_back(MemoryEffects::Read::get(), getFfn1Weight());
+  effects.emplace_back(MemoryEffects::Read::get(), getFfn1Bias());
+  effects.emplace_back(MemoryEffects::Read::get(), getFfn2Weight());
+  effects.emplace_back(MemoryEffects::Read::get(), getFfn2Bias());
+  effects.emplace_back(MemoryEffects::Write::get(), getOutput());
+}
+void MultiHeadAttentionLayer::addAsyncDependency(Value token) {
+  getAsyncDependenciesMutable().append(token);
+}
+
 #include "multi-device-model-compiler/Dialect/Device/IR/DeviceOpsEnums.cpp.inc"
 
 using namespace mlir;
