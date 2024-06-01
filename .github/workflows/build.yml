@@ -84,7 +84,7 @@ jobs:
                 PATH: ${{github.workspace}}/build/Release/bin:${{github.env.PATH}}
               continue-on-error: true
             - name: Upload llvm file
-              uses: actions/upload-artiface@v4
+              uses: actions/upload-artifact@v4
               with:
                 name: add-llvm-ir-file
                 path: examples/add.ll
