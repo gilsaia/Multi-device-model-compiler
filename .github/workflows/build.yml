@@ -77,6 +77,18 @@ jobs:
               run: cmake --build ${{ github.workspace }}/build --config ${{ matrix.build_type }}
             - name: Test
               run: cmake --build ${{ github.workspace }}/build --config ${{ matrix.build_type }} --target check-multi-device
+            - name: Generate output
+              run: |
+                multi-device-opt examples/add.mlir --onnx-to-mlir --mlir-to-cpu | multi-device-translate --mlir-to-llvmir -o examples/add.ll
+              env:
+                PATH: ${{github.workspace}}/build/Release/bin:${{github.env.PATH}}
+              continue-on-error: true
+            - name: Upload llvm file
+              uses: actions/upload-artiface@v4
+              with:
+                name: add-llvm-ir-file
+                path: examples/add.ll
+              continue-on-error: true
             - name: Save CCache
               id: save-ccache
               if: ${{ matrix.build_type == 'Release' }}

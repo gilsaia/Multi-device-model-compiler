@@ -50,6 +50,7 @@ examples/*.npz
 examples/*.ptx
 examples/*.cubin
 examples/*.dat
+!examples/add.mlir
 
 test/**/*.npz
 
