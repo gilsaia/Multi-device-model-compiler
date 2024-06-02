@@ -1,3 +1,7 @@
+if(ONLY_BUILD_PLAIN_RUNTIME)
+    add_subdirectory(Runtime)    
+else()
+
 add_subdirectory(Dialect)
 add_subdirectory(Conversion)
 add_subdirectory(Pass)
@@ -17,3 +21,5 @@ target_link_libraries(MultiDeviceInitTranslations PUBLIC
 MLIRToLLVMIRTranslationRegistration
 MultiDeviceDeviceDialect
 )
+
+endif()

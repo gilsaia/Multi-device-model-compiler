@@ -1,7 +1,10 @@
-#include "multi-device-model-compiler/Kernels/CPU/Ops.h"
 #include "multi-device-model-compiler/Runtime/ModelInfo.h"
 #include "multi-device-model-compiler/Runtime/RuntimeUtil.h"
 #include "multi-device-model-compiler/Runtime/TensorDescripter.h"
+
+#ifndef MULTI_DEVICE_PLAIN_RUNTIME
+#include "multi-device-model-compiler/Kernels/CPU/Ops.h"
+#endif
 
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/InitLLVM.h"
@@ -49,7 +52,9 @@ int main(int argc, char **argv) {
     return 1;
   }
 
+#ifndef MULTI_DEVICE_PLAIN_RUNTIME
   cpuOpsInit(FastMode);
+#endif
 
   ModelInfo *info = ModelInfo::ParseModelInfo();
   auto params = GetParamsVec(info);

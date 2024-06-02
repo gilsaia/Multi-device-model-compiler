@@ -84,3 +84,44 @@ jobs:
               with:
                 path: /home/runner/work/.ccache
                 key: ccache-${{ matrix.build_type }}-${{ github.ref_name }}-${{github.sha}}
+    runtime:
+      env:
+        CCACHE_DIR: /home/runner/work/.ccache
+        CCACHE_MAXSIZE: 1G
+      runs-on: ${{matrix.os}}
+      strategy:
+          fail-fast: false
+
+          matrix:
+              os: [ubuntu-latest]
+              build_type: [Release]
+      steps:
+        - uses: actions/checkout@v4
+          with: 
+            submodules: 'recursive'
+        - name: Install Tools
+          run: |
+            sudo apt-get update
+            sudo apt-get install  -y gcc g++ cmake ninja-build ccache
+        - name: Create CCache dir
+          run: mkdir -p /home/runner/work/.ccache
+        - name: Restore CCache 
+          id: restore-ccache
+          uses: actions/cache/restore@v3
+          with:
+            path: /home/runner/work/.ccache
+            key: ccache-${{ matrix.build_type }}-${{ github.ref_name }}-${{github.sha}}
+            restore-keys: |
+                ccache-${{ matrix.build_type }}-${{ github.ref_name }}-
+                ccache-${{ matrix.build_type }}-
+                ccache-
+        - name: Configure&Build LLVM CMake
+          run: |
+            sh utils/configure-llvm.sh
+            sh utils/build-llvm.sh
+          env:
+            LLVM_CCACHE_MAXSIZE: 1G
+        - name: Configure CMake
+          run: cmake -G Ninja -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DUSE_CCACHE_BUILD=ON -DONLY_BUILD_PLAIN_RUNTIME=ON
+        - name: Build
+          run: cmake --build ${{ github.workspace }}/build --config ${{ matrix.build_type }} --target multi-device-cpu-runner

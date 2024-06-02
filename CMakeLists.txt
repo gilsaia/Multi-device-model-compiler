@@ -12,6 +12,7 @@ set(CMAKE_INCLUDE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/$<CONFIG>/include)
 option(USE_CCACHE_BUILD "Use ccache to speedup." ON)
 option(USE_OMP "Use omp." ON)
 option(USE_CUDA_SUPPORT "Use cuda." OFF)
+option(ONLY_BUILD_PLAIN_RUNTIME "Use to build runtime without anything" OFF)
 
 #---------------------------------------------------------------
 
@@ -36,6 +37,13 @@ include_directories(${LLVM_INCLUDE_DIRS})
 include_directories(${MLIR_INCLUDE_DIRS})
 
 add_definitions(${LLVM_DEFINITIONS})
+#---------------------------------------------------------------
+
+# Plain runtime build
+if(ONLY_BUILD_PLAIN_RUNTIME)
+    message(STATUS "Will only build plain runtime,not import other repo.")
+    add_compile_definitions(MULTI_DEVICE_PLAIN_RUNTIME)
+else()
 #---------------------------------------------------------------
 
 # ONNX-Mlir Configure
@@ -98,10 +106,15 @@ if(USE_CUDA_SUPPORT)
 endif()
 #---------------------------------------------------------------
 
+# end plain runtime
+endif()
+
 include_directories(${CMAKE_SOURCE_DIR}/include)
 include_directories(${CMAKE_BINARY_DIR}/include)
 
 add_subdirectory(include/multi-device-model-compiler)
 add_subdirectory(lib)
 add_subdirectory(tools)
-add_subdirectory(test)
+if(NOT ONLY_BUILD_PLAIN_RUNTIME)
+    add_subdirectory(test)
+endif()
